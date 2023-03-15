@@ -17,6 +17,7 @@ public class DBServer {
 
     private static final char END_OF_TRANSMISSION = 4;
     private String storageFolderPath;
+    public Table table;
 
     public static void main(String args[]) throws IOException {
         DBServer server = new DBServer();
@@ -31,13 +32,14 @@ public class DBServer {
         try {
             // Create the database storage folder if it doesn't already exist !
             Files.createDirectories(Paths.get(storageFolderPath));
+            readFile();
             printFile();
         } catch (IOException ioe) {
             System.out.println("Can't seem to create database storage folder " + storageFolderPath);
         }
     }
 
-    public void printFile() throws IOException {
+    public void readFile() throws IOException {
         String datafile = "databases" + File.separator + "people.tab";
         File fileToOpen = new File(datafile);
 
@@ -45,8 +47,8 @@ public class DBServer {
             FileReader reader = new FileReader(fileToOpen);
             BufferedReader buffReader = new BufferedReader(reader);
             String currentLine = buffReader.readLine();
-            ArrayList<String> arrayList = new ArrayList<>(Arrays.asList(currentLine.split("\t")));
-            Table table = new Table("people", arrayList);
+            ArrayList<String> colNames = new ArrayList<>(Arrays.asList(currentLine.split("\t")));
+            this.table = new Table("people", colNames);
             currentLine = buffReader.readLine();
             while (currentLine != null) {
                 table.insertRow(currentLine);
@@ -54,11 +56,22 @@ public class DBServer {
                 currentLine = buffReader.readLine();
             }
             reader.close();
-            System.out.println(table.name);
-            System.out.println(table.cols);
-            System.out.println(table.rows);
         } else {
             throw new FileNotFoundException("Couldn't find people.tab");
+        }
+    }
+
+    public void printFile() {
+        System.out.println(table.getName());
+        for (Column col : table.getColumns()) {
+            System.out.print(col.getName() + "\t");
+        }
+        System.out.println();
+        for (Row row : table.getRows()) {
+            for (String value : row.getValues().values()) {
+                System.out.print(value + "\t");
+            }
+            System.out.println();
         }
     }
 
