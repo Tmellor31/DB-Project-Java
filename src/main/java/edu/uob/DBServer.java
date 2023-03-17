@@ -89,7 +89,6 @@ public class DBServer {
         tokeniser.setup();
         tokeniser.tokenise(command);
 
-
         StringBuilder result = new StringBuilder();
 
         // Display all rows and columns
