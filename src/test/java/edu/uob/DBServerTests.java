@@ -22,17 +22,4 @@ public class DBServerTests {
         server = new DBServer();
     }
 
-    @Test
-    public void editFileInfo() {
-      try {
-          this.server.readFile();
-      }catch (IOException ex){
-        fail(ex);
-      }
-      this.server.table.getRows().get(0).setValue("Age","80");
-      this.server.table.getRows().get(0).setValue("Email","Bob@lol.com");
-      this.server.printFile();
-    }
-
-
 }
