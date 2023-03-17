@@ -21,6 +21,7 @@ public class DBServer {
 
     public static void main(String args[]) throws IOException {
         DBServer server = new DBServer();
+        server.readFile(); // Initialize table object
         server.blockingListenOn(8888);
     }
 
@@ -83,9 +84,21 @@ public class DBServer {
      * <p>This method handles all incoming DB commands and carries out the required actions.
      */
     public String handleCommand(String command) {
-        // TODO implement your server logic here
-        return "";
+        StringBuilder result = new StringBuilder();
+
+        // Display all rows and columns
+        for (Column col : table.getColumns()) {
+            result.append(col.getName()).append(": ");
+            for (Row row : table.getRows()) {
+                result.append(row.getValues().get(col.getName())).append("\t");
+            }
+            result.append("\n");
+        }
+
+        return result.toString();
     }
+
+
 
     //  === Methods below handle networking aspects of the project - you will not need to change these ! ===
 
