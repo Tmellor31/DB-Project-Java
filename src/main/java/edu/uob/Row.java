@@ -2,20 +2,21 @@ package edu.uob;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.NoSuchElementException;
 
 public class Row {
-    private HashMap<String, String> values;
+    private LinkedHashMap<String, String> values; //He did say I don't need a linkedhashmap, could just use arraylist or treemap
 
     public Row(ArrayList<String> columnNames) {
-        values = new HashMap<>();
+        values = new LinkedHashMap<>();
         for (String columnName : columnNames){
             values.put(columnName,"");
         }
     }
 
 
-    public HashMap<String, String> getValues() {
+    public LinkedHashMap<String, String> getValues() {
         return this.values;
     }
 

@@ -2,6 +2,8 @@ package edu.uob;
 
 import java.util.ArrayList;
 
+//They never give ids - my table should always generate them
+
 public class Table {
     private String name;
     private ArrayList<Row> rows;
