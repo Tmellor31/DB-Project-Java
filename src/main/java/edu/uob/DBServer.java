@@ -17,11 +17,14 @@ public class DBServer {
 
     private static final char END_OF_TRANSMISSION = 4;
     private String storageFolderPath;
-    public Table table;
+
+    public LinkedHashMap<String, Database> databases;
+
 
     public static void main(String args[]) throws IOException {
         DBServer server = new DBServer();
-        server.readFile(); // Initialize table object
+
+        //server.readFile(); // Initialize table object
         server.blockingListenOn(8888);
     }
 
@@ -30,17 +33,17 @@ public class DBServer {
      */
     public DBServer() {
         storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
+        databases = new LinkedHashMap<>();
         try {
             // Create the database storage folder if it doesn't already exist !
             Files.createDirectories(Paths.get(storageFolderPath));
-            readFile();
-            printFile();
+            //readFile();
         } catch (IOException ioe) {
             System.out.println("Can't seem to create database storage folder " + storageFolderPath);
         }
     }
 
-    public void readFile() throws IOException {
+    /*public void readFile() throws IOException {
         String datafile = "databases" + File.separator + "people.tab";
         File fileToOpen = new File(datafile);
 
@@ -60,9 +63,9 @@ public class DBServer {
         } else {
             throw new FileNotFoundException("Couldn't find people.tab");
         }
-    }
+    }*/
 
-    public void printFile() {
+    /*public void printFile() {
         System.out.println(table.getName());
         for (Column col : table.getColumns()) {
             System.out.print(col.getName() + "\t");
@@ -74,7 +77,7 @@ public class DBServer {
             }
             System.out.println();
         }
-    }
+    }*/
 
 
     /**
@@ -85,24 +88,19 @@ public class DBServer {
      */
     public String handleCommand(String command) {
         Tokeniser tokeniser = new Tokeniser();
-        tokeniser.tokens.add(command);
+        tokeniser.query = command;
         tokeniser.setup();
-        tokeniser.tokenise(command);
+        ArrayList<String> tokens = tokeniser.tokens;
+        Parser parser = new Parser(tokens,databases);
 
-        StringBuilder result = new StringBuilder();
-
-        // Display all rows and columns
-        for (Column col : table.getColumns()) {
-            result.append(col.getName()).append(": ");
-            for (Row row : table.getRows()) {
-                result.append(row.getValues().get(col.getName())).append("\t");
-            }
-            result.append("\n");
+       try {
+           parser.readCommand();
+       }catch (Exception exception){
+           return exception.toString();
         }
 
-        return result.toString();
+        return "Yay";
     }
-
 
 
     //  === Methods below handle networking aspects of the project - you will not need to change these ! ===
