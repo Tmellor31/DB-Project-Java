@@ -44,6 +44,7 @@ public class Parser {
         count++;
         databaseList.setActiveDB(query.get(count).toLowerCase());
     }
+
     private void create() throws Exception {
         count++;
 
@@ -55,13 +56,14 @@ public class Parser {
         if (query.get(count).equalsIgnoreCase("TABLE")) {
             count++;
 
-            if (databaseList.getActiveDB().tableMap.containsKey(query.get(count))) {
+            if (databaseList.getActiveDB().getTable(query.get(count).toLowerCase()) != null) {
                 throw new Exception("TABLE " + query.get(count) + " already exists");
+            } else {
+                databaseList.getActiveDB().createTable(query.get(count).toLowerCase(), new ArrayList<String>());
             }
-        } //else {
-            //databaseList.getActiveDB().tableMap.put(query)
         }
     }
+}
 
 
 

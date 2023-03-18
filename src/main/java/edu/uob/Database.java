@@ -1,14 +1,28 @@
 package edu.uob;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 public class Database {
-    LinkedHashMap<String,Table> tableMap;
+    private LinkedHashMap<String,Table> tableMap;
     String dbName = "Placeholder";
 
     public Database(String dbName){
       this.dbName = dbName;
       tableMap = new LinkedHashMap<>();
+    }
+
+    public void createTable(String tableName, ArrayList<String> colNames) throws Exception {
+        if (tableMap.containsKey(tableName)) {
+            throw new Exception("Table " + tableName + " already exists");
+        }
+        else {
+            Table table = new Table(tableName,colNames);
+            tableMap.put(tableName,table);
+        }
+    }
+    public Table getTable(String key){
+        return tableMap.get(key);
     }
 }
 
