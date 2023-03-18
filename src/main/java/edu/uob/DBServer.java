@@ -1,5 +1,6 @@
 package edu.uob;
 
+import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -17,8 +18,8 @@ public class DBServer {
 
     private static final char END_OF_TRANSMISSION = 4;
     private String storageFolderPath;
+    DatabaseList databaseList;
 
-    public LinkedHashMap<String, Database> databases;
 
 
     public static void main(String args[]) throws IOException {
@@ -33,7 +34,7 @@ public class DBServer {
      */
     public DBServer() {
         storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
-        databases = new LinkedHashMap<>();
+        this.databaseList = new DatabaseList();
         try {
             // Create the database storage folder if it doesn't already exist !
             Files.createDirectories(Paths.get(storageFolderPath));
@@ -91,7 +92,7 @@ public class DBServer {
         tokeniser.query = command;
         tokeniser.setup();
         ArrayList<String> tokens = tokeniser.tokens;
-        Parser parser = new Parser(tokens,databases);
+        Parser parser = new Parser(tokens, databaseList);
 
        try {
            parser.readCommand();

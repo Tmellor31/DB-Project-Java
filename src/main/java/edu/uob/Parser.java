@@ -3,16 +3,17 @@ package edu.uob;
 import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Parser {
     int count = 0;
-    ArrayList <String> query;
-    public LinkedHashMap<String, Database> databases;
+    ArrayList<String> query;
+    DatabaseList databaseList;
 
 
-    public Parser(ArrayList<String> query, LinkedHashMap<String,Database> databases) {
+    public Parser(ArrayList<String> query, DatabaseList databaseList) {
         this.query = query;
-        this.databases = databases;
+        this.databaseList = databaseList;
     }
 
 
@@ -30,7 +31,7 @@ public class Parser {
         if (query.get(count).equalsIgnoreCase(("ALTER"))) {
             //alter(query);
         } else if (query.get(count).equalsIgnoreCase(("USE"))) {
-            //use(query);
+            use();
         } else if (query.get(count).equalsIgnoreCase(("INSERT"))) {
             //insert(query);
         } else if (query.get(count).equalsIgnoreCase(("CREATE"))) {
@@ -39,31 +40,30 @@ public class Parser {
         return false;
     }
 
-    private void use() {
-        System.out.println(count);
+    private void use() throws Exception {
+        count++;
+        databaseList.setActiveDB(query.get(count).toLowerCase());
     }
-
     private void create() throws Exception {
         count++;
 
         if (query.get(count).equalsIgnoreCase("DATABASE")) {
             count++;
             System.out.println(query.get(count));
-
-            if (databases.containsKey(query.get(count).toLowerCase())) {
-                throw new Exception("Database " + query.get(count) + " already exists");
-            }
-            else {
-                String databaseName = query.get(count).toLowerCase();
-                Database database = new Database(databaseName);
-                databases.put(databaseName,database);
-                System.out.println(databases);
-            }
+            databaseList.createDatabase(query.get(count).toLowerCase());
         }
+        if (query.get(count).equalsIgnoreCase("TABLE")) {
+            count++;
 
+            if (databaseList.getActiveDB().tableMap.containsKey(query.get(count))) {
+                throw new Exception("TABLE " + query.get(count) + " already exists");
+            }
+        } //else {
+            //databaseList.getActiveDB().tableMap.put(query)
+        }
     }
 
-}
+
 
 
 
