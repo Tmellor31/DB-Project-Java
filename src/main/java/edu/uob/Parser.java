@@ -43,9 +43,8 @@ public class Parser {
 
         } else if (query.get(count).equalsIgnoreCase(("CREATE"))) {
             create();
-        }
-          else if (query.get(count).equalsIgnoreCase(("JOIN"))){
-              join();
+        } else if (query.get(count).equalsIgnoreCase(("JOIN"))) {
+            join();
         }
         return false;
     }
@@ -91,23 +90,23 @@ public class Parser {
         }
     }
 
-    private void join() throws Exception{
+    private void join() throws Exception {
         moveToNextToken();
         Table firstTable = databaseList.getActiveDB().getTable(getCurrentToken());
-        if (firstTable == null){
+        if (firstTable == null) {
             throw new Exception("Table " + getCurrentToken() + " not found");
         }
         moveToNextToken();
-        if (getCurrentToken() != "AND"){
+        if (getCurrentToken() != "AND") {
             throw new Exception("AND not found in JOIN statement - received " + getCurrentToken());
         }
         moveToNextToken();
         Table secondTable = databaseList.getActiveDB().getTable(getCurrentToken());
-        if (secondTable == null){
+        if (secondTable == null) {
             throw new Exception("Table " + getCurrentToken() + " not found");
         }
         moveToNextToken();
-        if (getCurrentToken() != "ON"){
+        if (getCurrentToken() != "ON") {
             throw new Exception("ON not found in JOIN statement - received " + getCurrentToken());
         }
         moveToNextToken();
@@ -119,13 +118,44 @@ public class Parser {
         return query.get(count).toLowerCase();
     }
 
-    private void moveToNextToken(){
+    private void moveToNextToken() {
         count++;
     }
 
-    private boolean isAttributeName(String statement){
-        return true;
+    private boolean isAttributeName(String statement) {
+        if (isPlainText(getCurrentToken())) {
+            return true;
+        } else if (databaseList.getActiveDB().getTable(getCurrentToken()) != null && query.get(count + 1) == "." && isPlainText(query.get(count + 2)))
+        {
+            return true;
+        }
+        return false;
     }
+
+
+    private boolean isPlainText(String statement) {
+        if (isLetter(statement) || isDigit(statement)) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isLetter(String statement) {
+        if (statement.matches("[a-zA-Z]")) {
+            return true;
+        }
+        return false;
+    }
+
+
+    private boolean isDigit(String statement) {
+        if (statement.matches("[0-9]")) {
+            // statement contains only a single digit from 0 to 9
+            return true;
+        }
+        return false;
+    }
+
 
     private boolean isCondition(String statement) {
         // Split the statement into tokens
@@ -146,7 +176,7 @@ public class Parser {
         if (statement.startsWith("(") && statement.endsWith(")")) {
             return true;
         }
-        if (isComparator(statement)){
+        if (isComparator(statement)) {
             return true;
         }
 
