@@ -24,5 +24,13 @@ public class Database {
     public Table getTable(String key){
         return tableMap.get(key);
     }
+    public void dropTable(String tableName) throws Exception{
+        if (tableMap.containsKey(tableName)){
+            tableMap.remove(tableName);
+        }
+        else {
+            throw new Exception("Table " + tableName + " does not exist");
+        }
+    }
 }
 

@@ -32,8 +32,11 @@ public class Parser {
             //alter(query);
         } else if (query.get(count).equalsIgnoreCase(("USE"))) {
             use();
-        } else if (query.get(count).equalsIgnoreCase(("INSERT"))) {
-            //insert(query);
+        } else if (query.get(count).equalsIgnoreCase(("INSERT")) && (query.get(count + 1).equalsIgnoreCase("INTO"))) {
+            insert();
+        } else if (query.get(count).equalsIgnoreCase(("DROP"))) {
+            drop();
+
         } else if (query.get(count).equalsIgnoreCase(("CREATE"))) {
             create();
         }
@@ -45,23 +48,44 @@ public class Parser {
         databaseList.setActiveDB(query.get(count).toLowerCase());
     }
 
+    private void insert() throws Exception {
+        count += 2; //Move 2 because of insert AND into
+        Table targetTable = databaseList.getActiveDB().getTable(getCurrentToken());
+    }
+
+    private void drop() throws Exception {
+        count++;
+        if (query.get(count).equalsIgnoreCase("DATABASE")) {
+            count++;
+            databaseList.dropDatabase(getCurrentToken());
+        }
+        if (query.get(count).equalsIgnoreCase("TABLE")) {
+            count++;
+            databaseList.getActiveDB().dropTable(getCurrentToken());
+        }
+    }
+
+
     private void create() throws Exception {
         count++;
 
         if (query.get(count).equalsIgnoreCase("DATABASE")) {
             count++;
-            System.out.println(query.get(count));
-            databaseList.createDatabase(query.get(count).toLowerCase());
+            databaseList.createDatabase(getCurrentToken());
         }
         if (query.get(count).equalsIgnoreCase("TABLE")) {
             count++;
 
-            if (databaseList.getActiveDB().getTable(query.get(count).toLowerCase()) != null) {
-                throw new Exception("TABLE " + query.get(count) + " already exists");
+            if (databaseList.getActiveDB().getTable(getCurrentToken()) != null) {
+                throw new Exception("TABLE " + getCurrentToken() + " already exists");
             } else {
-                databaseList.getActiveDB().createTable(query.get(count).toLowerCase(), new ArrayList<String>());
+                databaseList.getActiveDB().createTable(getCurrentToken(), new ArrayList<String>());
             }
         }
+    }
+
+    private String getCurrentToken() {
+        return query.get(count).toLowerCase();
     }
 }
 

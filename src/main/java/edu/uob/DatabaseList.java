@@ -36,4 +36,12 @@ public class DatabaseList {
             throw new Exception("Database '" + key + "' already exists");
         }
     }
+    public void dropDatabase(String key) throws Exception {
+        if (databases.containsKey(key)){
+            databases.remove(key);
+        }
+        else {
+            throw new Exception("Database " + key + " does not exist");
+        }
+    }
 }
