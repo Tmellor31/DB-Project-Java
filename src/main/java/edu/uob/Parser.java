@@ -21,7 +21,7 @@ public class Parser {
     }
 
 
-    public boolean readCommand() throws Exception {
+    public String readCommand() throws Exception {
         System.out.println("first command token is " + query.get(0));
 
         //Check that the last token is ;
@@ -29,7 +29,6 @@ public class Parser {
         String lastToken = query.get(lastTokenNum - 1);
         if (lastToken.equals(";")) {
             System.out.println("true");
-            return true;
         }
         //query.tokens.get(count) should equal the 'current command' - at the start it is equal to zero so the first input
         if (query.get(count).equalsIgnoreCase(("ALTER"))) {
@@ -46,7 +45,7 @@ public class Parser {
         } else if (query.get(count).equalsIgnoreCase(("JOIN"))) {
             join();
         }
-        return false;
+        return "Boom";
     }
 
     private void use() throws Exception {
@@ -110,8 +109,45 @@ public class Parser {
             throw new Exception("ON not found in JOIN statement - received " + getCurrentToken());
         }
         moveToNextToken();
+        String firstAttribute = getCurrentToken();
+        if (!isAttributeName(firstAttribute)) {
+            throw new Exception("Attribute name not found after ON in join statement, received " + firstAttribute);
+        }
+        moveToNextToken();
+        if (getCurrentToken() != "AND") {
+            throw new Exception("AND not found in Join statement, received " + getCurrentToken());
+        }
+        moveToNextToken();
+        String secondAttribute = getCurrentToken();
+        if (!isAttributeName(secondAttribute)) {
+            throw new Exception("Attribute name not found after AND in join statement, received " + secondAttribute);
+        }
+        String firstColName = attributeInTable(firstTable,firstAttribute);
+        String secondColName = attributeInTable(secondTable,secondAttribute);
 
+    }
 
+    private String attributeInTable(Table table, String attribute) throws Exception {
+        if (attribute.contains(".")) {
+            String[] splitToken = attribute.split(".");
+            if (splitToken.length != 2) {
+                throw new Exception("Invalid number of attributes received. Received " + attribute);
+            }
+            String tableName = splitToken[0];
+            String column = splitToken[1];
+            if (table.getName() != tableName) {
+                throw new Exception("Table name in join invalid, expected " + table.getName() + " received " + tableName);
+            }
+            if (!table.colInTable(column)) {
+                throw new Exception("Column name " + column + " not found in table " + table.getName());
+            }
+            return column;
+        } else {
+            if (!table.colInTable(attribute)) {
+                throw new Exception("Column " + attribute + " not found in table " + table.getName());
+            }
+            return attribute;
+        }
     }
 
     private String getCurrentToken() {
@@ -122,11 +158,19 @@ public class Parser {
         count++;
     }
 
-    private boolean isAttributeName(String statement) {
-        if (isPlainText(getCurrentToken())) {
+    private boolean isAttributeList(String statement) {
+        if (isAttributeName(getCurrentToken())) {
             return true;
-        } else if (databaseList.getActiveDB().getTable(getCurrentToken()) != null && query.get(count + 1) == "." && isPlainText(query.get(count + 2)))
-        {
+        } else if (isAttributeName(getCurrentToken()) && query.get(count + 1) == "," && isAttributeList(query.get(count + 2))) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isAttributeName(String statement) {
+        if (isPlainText(statement)) {
+            return true;
+        } else if (databaseList.getActiveDB().getTable(statement) != null && query.get(count + 1) == "." && isPlainText(query.get(count + 2))) {
             return true;
         }
         return false;
@@ -134,7 +178,7 @@ public class Parser {
 
 
     private boolean isPlainText(String statement) {
-        if (isLetter(statement) || isDigit(statement)) {
+        if (isLetter(statement) || isDigit(statement))/*Needs to work for words too*/ {
             return true;
         }
         return false;

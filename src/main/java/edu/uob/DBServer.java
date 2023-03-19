@@ -93,14 +93,14 @@ public class DBServer {
         tokeniser.setup();
         ArrayList<String> tokens = tokeniser.tokens;
         Parser parser = new Parser(tokens, databaseList);
-
+        String response;
        try {
-           parser.readCommand();
+           response = parser.readCommand();
        }catch (Exception exception){
-           return exception.toString();
+           return "[ERROR]" + exception;
         }
 
-        return "Yay";
+        return "[OK]" + response;
     }
 
 

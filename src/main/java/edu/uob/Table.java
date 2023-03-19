@@ -58,13 +58,16 @@ public class Table {
     }
 
     public int getNextID() {
-        if (rows.isEmpty())
-        {
+        if (rows.isEmpty()) {
             return 1; //First positive integer
         }
         Row last = rows.get(rows.size() - 1);
         String lastidString = last.getValues().get("id");
         int lastID = Integer.parseInt(lastidString);
         return lastID + 1;
+    }
+
+    public boolean colInTable(String column) {
+        return this.cols.contains(column);
     }
 }
