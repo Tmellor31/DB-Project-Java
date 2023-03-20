@@ -14,6 +14,8 @@ public class Parser {
     ArrayList<String> query;
     DatabaseList databaseList;
     final String[] comparators = new String[]{"==", ">", "<", ">=", "<=", "!=", "LIKE"};
+    final String[] symbols = new String[]{"!", "#", "$", "%", "&", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", ">", "=", "<", "?", "@", "[", "\",", "|", "]", "^", "_", "`", "{", "}", "~"};
+    final String space = " ";
 
     public Parser(ArrayList<String> query, DatabaseList databaseList) {
         this.query = query;
@@ -122,8 +124,8 @@ public class Parser {
         if (!isAttributeName(secondAttribute)) {
             throw new Exception("Attribute name not found after AND in join statement, received " + secondAttribute);
         }
-        String firstColName = attributeInTable(firstTable,firstAttribute);
-        String secondColName = attributeInTable(secondTable,secondAttribute);
+        String firstColName = attributeInTable(firstTable, firstAttribute);
+        String secondColName = attributeInTable(secondTable, secondAttribute);
 
     }
 
@@ -156,6 +158,44 @@ public class Parser {
 
     private void moveToNextToken() {
         count++;
+    }
+
+    private boolean isValue(String statement) {
+        return true;
+    }
+
+    private boolean isDigitSequence(Integer currentTokenPosition) {
+        Integer nextPosition = currentTokenPosition + 1;
+        if (isDigit(query.get(currentTokenPosition)) && isDigitSequence(nextPosition)) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isCharLiteral(String statement) {
+        if (statement == space || isLetter(statement) || isSymbol(statement) || isDigit(statement)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean isSymbol(String statement) {
+        for (String symbol : symbols) {
+            if (statement.contains(symbol)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    private boolean isBooleanLiteral(String statement) {
+        if (statement.equalsIgnoreCase("TRUE") || statement.equalsIgnoreCase("FALSE")) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private boolean isAttributeList(String statement) {
@@ -235,7 +275,9 @@ public class Parser {
         }
         return false;
     }
+
 }
+
 
 
 
