@@ -6,7 +6,7 @@ import java.util.Arrays;
 public class Tokeniser {
 
     String query = "  INSERT  INTO  people   VALUES(  'Simon Lock'  ,35, 'simon@bristol.ac.uk' , 1.8  ) ; ";
-    String[] specialCharacters = {"(",")",",",";"};
+    String[] specialCharacters = {"(",")",",",";"}; //Need to make it split on the other chars too
     ArrayList<String> tokens = new ArrayList<String>();
 
     void setup()
