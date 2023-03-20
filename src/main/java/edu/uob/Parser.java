@@ -14,7 +14,7 @@ public class Parser {
     ArrayList<String> query;
     DatabaseList databaseList;
     final String[] comparators = new String[]{"==", ">", "<", ">=", "<=", "!=", "LIKE"};
-    final String[] symbols = new String[]{"!", "#", "$", "%", "&", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", ">", "=", "<", "?", "@", "[", "\",", "|", "]", "^", "_", "`", "{", "}", "~"};
+    final String[] symbols = new String[]{"!", "#", "$", "%", "&", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", ">", "=", "<", "?", "@", "[", "\"", "|", "]", "^", "_", "`", "{", "}", "~"};
     final String space = " ";
 
     public Parser(ArrayList<String> query, DatabaseList databaseList) {
@@ -34,7 +34,7 @@ public class Parser {
         }
         //query.tokens.get(count) should equal the 'current command' - at the start it is equal to zero so the first input
         if (query.get(count).equalsIgnoreCase(("ALTER"))) {
-            //alter(query);
+            alter();
         } else if (query.get(count).equalsIgnoreCase(("USE"))) {
             use();
         } else if (query.get(count).equalsIgnoreCase(("INSERT")) && (query.get(count + 1).equalsIgnoreCase("INTO"))) {
@@ -70,6 +70,18 @@ public class Parser {
             moveToNextToken();
             databaseList.getActiveDB().dropTable(getCurrentToken());
         }
+    }
+
+    private void alter() throws Exception {
+        moveToNextToken();
+        if (!query.get(count).equalsIgnoreCase("TABLE")) {
+            throw new Exception("Expected 'TABLE' after alter command, received " + getCurrentToken());
+        }
+        String tableName = query.get(count).toLowerCase();
+        moveToNextToken();
+        /*if (getCurrentToken().equalsIgnoreCase(ADD) {
+
+        }*/
     }
 
 
@@ -164,16 +176,12 @@ public class Parser {
         return true;
     }
 
-    private boolean isDigitSequence(Integer currentTokenPosition) {
-        Integer nextPosition = currentTokenPosition + 1;
-        if (isDigit(query.get(currentTokenPosition)) && isDigitSequence(nextPosition)) {
-            return true;
-        }
-        return false;
+    private boolean isDigitSequence(String token) {
+        return isNumber(token);
     }
 
     private boolean isCharLiteral(String statement) {
-        if (statement == space || isLetter(statement) || isSymbol(statement) || isDigit(statement)) {
+        if (statement == space || isLetter(statement) || isSymbol(statement) || isNumber(statement)) {
             return true;
         } else {
             return false;
@@ -198,46 +206,46 @@ public class Parser {
         }
     }
 
-    private boolean isAttributeList(String statement) {
-        if (isAttributeName(getCurrentToken())) {
-            return true;
-        } else if (isAttributeName(getCurrentToken()) && query.get(count + 1) == "," && isAttributeList(query.get(count + 2))) {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isAttributeName(String statement) {
-        if (isPlainText(statement)) {
-            return true;
-        } else if (databaseList.getActiveDB().getTable(statement) != null && query.get(count + 1) == "." && isPlainText(query.get(count + 2))) {
+    private boolean isAttributeList(Integer currentPosition) {
+        if (!isAttributeName(query.get(currentPosition))) {
+          return false;
+        } else if (query.get(currentPosition + 1) == "," && isAttributeList(currentPosition + 2)) {
             return true;
         }
         return false;
     }
 
-
-    private boolean isPlainText(String statement) {
-        if (isLetter(statement) || isDigit(statement))/*Needs to work for words too*/ {
+    private boolean isWildAttributeList(Integer currentPosition) {
+        if (query.get(currentPosition) == "*"){
             return true;
         }
-        return false;
+        return isAttributeList(currentPosition);
     }
 
-    private boolean isLetter(String statement) {
-        if (statement.matches("[a-zA-Z]")) {
-            return true;
+    private boolean isAttributeName(String attribute) {
+        String[] splitToken = attribute.split(".");
+        if (splitToken.length != 1 && splitToken.length != 2) {
+            return false;
         }
-        return false;
+        for (String token : splitToken) {
+            if (!isPlainText(token)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isPlainText(String token) {
+        return token.matches("[a-zA-Z0-9]+");
+    }
+
+    private boolean isLetter(String token) {
+        return token.matches("[a-zA-Z]+");
     }
 
 
-    private boolean isDigit(String statement) {
-        if (statement.matches("[0-9]")) {
-            // statement contains only a single digit from 0 to 9
-            return true;
-        }
-        return false;
+    private boolean isNumber(String token) {
+        return token.matches("[0-9]+");
     }
 
 
