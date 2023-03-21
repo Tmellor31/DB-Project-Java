@@ -44,7 +44,10 @@ public class Parser {
 
         } else if (query.get(count).equalsIgnoreCase(("CREATE"))) {
             create();
-        } else if (query.get(count).equalsIgnoreCase(("JOIN"))) {
+        }
+        else if (query.get(count).equalsIgnoreCase(("SELECT"))) {
+            select();
+        }else if (query.get(count).equalsIgnoreCase(("JOIN"))) {
             join();
         }
         return "Boom";
@@ -114,6 +117,23 @@ public class Parser {
             }
 
         }
+    }
+
+    private void select() throws Exception {
+        moveToNextToken();
+        if (!isWildAttributeList(count)){
+            throw new Exception ("Expected * or an attribute list, receieved " + getCurrentToken());
+        }
+        moveToNextToken();
+        if (getCurrentToken() != "FROM"){
+            throw new Exception("Expected FROM after wildattriblist in SELECT, received " + getCurrentToken());
+        }
+        moveToNextToken();
+        if (!isPlainText(getCurrentToken())){
+            throw new Exception("Expected a plain-text table in SELECT, received " + getCurrentToken());
+        }
+        moveToNextToken();
+
     }
 
     private void join() throws Exception {
@@ -307,6 +327,13 @@ public class Parser {
             return true;
         }
 
+        return false;
+    }
+
+    private boolean isBoolOperator(String statement) {
+        if (statement == "AND" || statement == "OR") {
+            return true;
+        }
         return false;
     }
 
