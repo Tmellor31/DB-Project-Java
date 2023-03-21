@@ -173,7 +173,7 @@ public class Parser {
             throw new Exception("Plain text table not received in update, received " + getCurrentToken());
         }
         moveToNextToken();
-        if (getCurrentToken() != "SET"){
+        if (!getCurrentToken().equalsIgnoreCase("SET")){
             throw new Exception("SET not found after table in update, received " + getCurrentToken());
         }
         moveToNextToken();
@@ -181,7 +181,7 @@ public class Parser {
             throw new Exception("Name value list not found after SET in update, received " + getCurrentToken());
         }
         moveToNextToken();
-        if (getCurrentToken() != "WHERE"){
+        if (!getCurrentToken().equalsIgnoreCase("WHERE")){
             throw new Exception("WHERE not found after namevaluelist in update, received " + getCurrentToken());
         }
         if (!isCondition(getCurrentToken())) {
@@ -288,20 +288,20 @@ public class Parser {
     }
 
     private boolean isStringLiteral(Integer currentPosition) {
-        if (query.get(currentPosition) == "\"") {
+        if (query.get(currentPosition).equals("\"")) {
             // check for empty string
-            if (query.get(currentPosition + 1) == "\"") {
+            if (query.get(currentPosition + 1).equals("\"")) {
                 return true;
             }
             // check for non-empty string
             Integer nextPosition = currentPosition + 1;
             while (nextPosition < query.size()) {
                 // check for escaped quotes
-                if (query.get(nextPosition) == "\\") {
+                if (query.get(nextPosition).equals("\\")) {
                     nextPosition += 2;
                 }
                 // check for end of string
-                else if (query.get(nextPosition) == "\"") {
+                else if (query.get(nextPosition).equals("\"")) {
                     return true;
                 }
                 // check for valid characters within string
@@ -333,7 +333,7 @@ public class Parser {
         if (isDigitSequence(query.get(currentPosition))){
             return true;
         }
-        else if (query.get(currentPosition) == "-" || query.get(currentPosition) == "+" && isDigitSequence(query.get(currentPosition+1))){
+        else if (query.get(currentPosition).equals("-") || query.get(currentPosition).equals("+") && isDigitSequence(query.get(currentPosition+1))){
             return true;
         }
         return false;
@@ -341,12 +341,12 @@ public class Parser {
 
     private boolean isFloatLiteral(Integer currentPosition) {
         if (isDigitSequence(query.get(currentPosition))) {
-            if (query.get(currentPosition+1) == ".") {
+            if (query.get(currentPosition+1).equals(".")) {
                 return isDigitSequence(query.get(currentPosition+2));
             }
             return false;
-        } else if (query.get(currentPosition) == "-" || query.get(currentPosition) == "+") {
-            if (query.get(currentPosition+1) == "." && isDigitSequence(query.get(currentPosition+2))) {
+        } else if (query.get(currentPosition).equals("-") || query.get(currentPosition).equals("+")) {
+            if (query.get(currentPosition+1).equals(".") && isDigitSequence(query.get(currentPosition+2))) {
                 return true;
             }
             return false;
@@ -366,7 +366,7 @@ public class Parser {
     private boolean isValueList(Integer currentPosition) {
         if (!isValue(currentPosition)) {
             return false;
-        } else if (query.get(currentPosition + 1) == "," && isValueList(currentPosition + 2)) {
+        } else if (query.get(currentPosition + 1).equals(",") && isValueList(currentPosition + 2)) {
             return true;
         }
         return false;
@@ -375,7 +375,7 @@ public class Parser {
     private boolean isNameValueList(Integer currentPosition) {
         if (!isNameValuePair(currentPosition)) {
             return false;
-        } else if (query.get(currentPosition + 1) == "," && isNameValueList(currentPosition + 2)) {
+        } else if (query.get(currentPosition + 1).equals(",") && isNameValueList(currentPosition + 2)) {
             return true;
         }
         return false;
@@ -386,7 +386,7 @@ public class Parser {
         if (!isAttributeName(query.get(currentPosition))) {
             return false;
         }
-        if (query.get(currentPosition + 1) != "=") {
+        if (!query.get(currentPosition + 1).equals("=")) {
             return false;
         }
         if (!isValue(currentPosition)) {
@@ -398,7 +398,7 @@ public class Parser {
     private boolean isAttributeList(Integer currentPosition) {
         if (!isAttributeName(query.get(currentPosition))) {
             return false;
-        } else if (query.get(currentPosition + 1) == "," && isAttributeList(currentPosition + 2)) {
+        } else if (query.get(currentPosition + 1).equals(",") && isAttributeList(currentPosition + 2)) {
             return true;
         }
         return false;
@@ -465,7 +465,7 @@ public class Parser {
     }
 
     private boolean isBoolOperator(String statement) {
-        if (statement == "AND" || statement == "OR") {
+        if (statement.equals("AND") || statement.equals("OR")) {
             return true;
         }
         return false;
