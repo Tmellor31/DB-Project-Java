@@ -22,4 +22,23 @@ public class DBServerTests {
         server = new DBServer();
     }
 
+    private String sendCommandToServer(String command) {
+        // Try to send a command to the server - this call will timeout if it takes too long (in case the server enters an infinite loop)
+        return assertTimeoutPreemptively(Duration.ofMillis(1000), () -> { return server.handleCommand(command);},
+                "Server took too long to respond (probably stuck in an infinite loop)");
+    }
+
+    @Test
+    public void testPlainTextDBandTable() {
+        sendCommandToServer("CREATE DATABASE " + "fred" + ";");
+        sendCommandToServer("USE " + "fred" + ";");
+        sendCommandToServer("CREATE TABLE " + "fred" + ";");
+        sendCommandToServer("CREATE TABLE " + ".//../../" + ";");
+        String response = sendCommandToServer("CREATE DATABASE " + "...,.,.///" + ";");
+        String response2 = sendCommandToServer("CREATE TABLE " + ".//../../" + ";");
+
+        assertTrue(response.contains("[ERROR]"), "An ERROR tag was not returned after trying to create a non-plain text db");
+        assertTrue(response2.contains("[ERROR]"), "An ERROR tag was not returned after trying to create a non-plain text table");
+    }
+
 }
