@@ -29,8 +29,8 @@ public class Parser {
         //Check that the last token is ;
         int lastTokenNum = query.size();
         String lastToken = query.get(lastTokenNum - 1);
-        if (lastToken.equals(";")) {
-            System.out.println("true");
+        if (!lastToken.equals(";")) {
+            throw new Exception("Last token is not ;, received " + lastToken);
         }
         //query.tokens.get(count) should equal the 'current command' - at the start it is equal to zero so the first input
         if (query.get(count).equalsIgnoreCase(("ALTER"))) {
@@ -107,7 +107,7 @@ public class Parser {
             if (!isPlainText(getCurrentToken())) {
                 throw new Exception("Table names must be plain text, received " + getCurrentToken());
             }
-            if (databaseList.getActiveDB().getTable(getCurrentToken()) != null) {
+            if (databaseList.getActiveDB().getTable(getCurrentToken().toLowerCase()) != null) {
                 throw new Exception("TABLE " + getCurrentToken() + " already exists");
             } else {
                 databaseList.getActiveDB().createTable(getCurrentToken(), new ArrayList<String>());
@@ -118,21 +118,21 @@ public class Parser {
 
     private void join() throws Exception {
         moveToNextToken();
-        Table firstTable = databaseList.getActiveDB().getTable(getCurrentToken());
+        Table firstTable = databaseList.getActiveDB().getTable(getCurrentToken().toLowerCase());
         if (firstTable == null) {
             throw new Exception("Table " + getCurrentToken() + " not found");
         }
         moveToNextToken();
-        if (getCurrentToken() != "AND") {
+        if (!getCurrentToken().equalsIgnoreCase("AND")) {
             throw new Exception("AND not found in JOIN statement - received " + getCurrentToken());
         }
         moveToNextToken();
-        Table secondTable = databaseList.getActiveDB().getTable(getCurrentToken());
+        Table secondTable = databaseList.getActiveDB().getTable(getCurrentToken().toLowerCase());
         if (secondTable == null) {
             throw new Exception("Table " + getCurrentToken() + " not found");
         }
         moveToNextToken();
-        if (getCurrentToken() != "ON") {
+        if (!getCurrentToken().equalsIgnoreCase("ON")) {
             throw new Exception("ON not found in JOIN statement - received " + getCurrentToken());
         }
         moveToNextToken();
@@ -141,7 +141,7 @@ public class Parser {
             throw new Exception("Attribute name not found after ON in join statement, received " + firstAttribute);
         }
         moveToNextToken();
-        if (getCurrentToken() != "AND") {
+        if (!getCurrentToken().equalsIgnoreCase("AND")) {
             throw new Exception("AND not found in Join statement, received " + getCurrentToken());
         }
         moveToNextToken();
@@ -149,8 +149,8 @@ public class Parser {
         if (!isAttributeName(secondAttribute)) {
             throw new Exception("Attribute name not found after AND in join statement, received " + secondAttribute);
         }
-        String firstColName = attributeInTable(firstTable, firstAttribute);
-        String secondColName = attributeInTable(secondTable, secondAttribute);
+        //String firstColName = attributeInTable(firstTable, firstAttribute);
+        //String secondColName = attributeInTable(secondTable, secondAttribute);
 
     }
 
