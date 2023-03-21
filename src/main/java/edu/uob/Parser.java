@@ -90,16 +90,23 @@ public class Parser {
 
         if (query.get(count).equalsIgnoreCase("DATABASE")) {
             moveToNextToken();
+            if (!isPlainText(getCurrentToken())) {
+                throw new Exception("Database names must be plain text, received " + getCurrentToken());
+            }
             databaseList.createDatabase(getCurrentToken());
+
         }
         if (query.get(count).equalsIgnoreCase("TABLE")) {
             moveToNextToken();
-
+            if (!isPlainText(getCurrentToken())) {
+                throw new Exception("Table names must be plain text, received " + getCurrentToken());
+            }
             if (databaseList.getActiveDB().getTable(getCurrentToken()) != null) {
                 throw new Exception("TABLE " + getCurrentToken() + " already exists");
             } else {
                 databaseList.getActiveDB().createTable(getCurrentToken(), new ArrayList<String>());
             }
+
         }
     }
 
@@ -207,7 +214,7 @@ public class Parser {
     }
 
     private boolean isValueList(Integer currentPosition) {
-        if (!isValue(query.get(currentPosition))){
+        if (!isValue(query.get(currentPosition))) {
             return false;
         } else if (query.get(currentPosition + 1) == "," && isValueList(currentPosition + 2)) {
             return true;
