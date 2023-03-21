@@ -64,10 +64,16 @@ public class Parser {
         moveToNextToken();
         if (query.get(count).equalsIgnoreCase("DATABASE")) {
             moveToNextToken();
+            if (!isPlainText(getCurrentToken())) {
+                throw new Exception("Database names must be plain text, received " + getCurrentToken());
+            }
             databaseList.dropDatabase(getCurrentToken());
         }
         if (query.get(count).equalsIgnoreCase("TABLE")) {
             moveToNextToken();
+            if (!isPlainText(getCurrentToken())) {
+                throw new Exception("Table names must be plain text, received " + getCurrentToken());
+            }
             databaseList.getActiveDB().dropTable(getCurrentToken());
         }
     }
