@@ -206,9 +206,31 @@ public class Parser {
         }
     }
 
+    private boolean isValueList(Integer currentPosition) {
+        if (!isValue(query.get(currentPosition))){
+            return false;
+        } else if (query.get(currentPosition + 1) == "," && isValueList(currentPosition + 2)) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isNameValuePair(Integer currentPosition) {
+        if (!isAttributeName(query.get(currentPosition))) {
+            return false;
+        }
+        if (query.get(currentPosition + 1) != "=") {
+            return false;
+        }
+        if (!isValue(query.get(currentPosition + 2))) {
+            return false;
+        }
+        return true;
+    }
+
     private boolean isAttributeList(Integer currentPosition) {
         if (!isAttributeName(query.get(currentPosition))) {
-          return false;
+            return false;
         } else if (query.get(currentPosition + 1) == "," && isAttributeList(currentPosition + 2)) {
             return true;
         }
@@ -216,7 +238,7 @@ public class Parser {
     }
 
     private boolean isWildAttributeList(Integer currentPosition) {
-        if (query.get(currentPosition) == "*"){
+        if (query.get(currentPosition) == "*") {
             return true;
         }
         return isAttributeList(currentPosition);
