@@ -70,4 +70,31 @@ public class Table {
     public boolean colInTable(String column) {
         return this.cols.contains(column);
     }
+
+    public String stringifyTable() {
+        String output = " ";
+        for (Column col : this.getColumns()) {
+            output = output.concat(col.getName()).concat("\t");
+        }
+        output = output.concat("\n");
+        for (Row row : this.getRows()) {
+            for (String value : row.getValues().values()) {
+                output = output.concat(value).concat("\t");
+            }
+            output = output.concat("\n");
+        }
+        return output;
+    }
+
+    public void addColumn(String columnName) throws Exception {
+        if (this.colInTable(columnName)) {
+            throw new Exception("Column " + columnName + " already found in table");
+        }
+        Column column = new Column(columnName);
+        cols.add(column);
+    }
 }
+
+
+
+

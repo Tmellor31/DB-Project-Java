@@ -46,9 +46,11 @@ public class Parser {
             create();
         }
         else if (query.get(count).equalsIgnoreCase(("SELECT"))) {
-            select();
+           return select();
         }else if (query.get(count).equalsIgnoreCase(("JOIN"))) {
             join();
+        }else if (query.get(count).equalsIgnoreCase(("UPDATE"))){
+            update();
         }
         return "Boom";
     }
@@ -86,11 +88,35 @@ public class Parser {
         if (!query.get(count).equalsIgnoreCase("TABLE")) {
             throw new Exception("Expected 'TABLE' after alter command, received " + getCurrentToken());
         }
-        String tableName = query.get(count).toLowerCase();
         moveToNextToken();
-        /*if (getCurrentToken().equalsIgnoreCase(ADD) {
+        String tableName = query.get(count).toLowerCase();
+        if (!isPlainText(getCurrentToken())) {
+            throw new Exception("Given table name is not plain text, received " + tableName);
+        }
+        Table activeTable = databaseList.getActiveDB().getTable(tableName);
+        if (activeTable == null){
+            throw new Exception("Table " + tableName + " does not exist");
+        }
+        moveToNextToken();
+        String command = getCurrentToken().toLowerCase();
+        if (!command.equalsIgnoreCase("ADD") && !command.equalsIgnoreCase("DROP")) {
+            throw new Exception(("ADD or DROP expected after ALTER, received " + getCurrentToken()));
+        }
+        moveToNextToken();
+        String columnName = getCurrentToken();
+        if (!isAttributeName(columnName)) {
+            throw new Exception(("Expected attribute name after space in ALTER, received " + getCurrentToken()));
+        }
+        if (command.equalsIgnoreCase("ADD")) {
+            add(columnName,activeTable);
+        }
+        if (command.equalsIgnoreCase("DROP")) {
+            //dropColumn();
+        }
+    }
 
-        }*/
+    private void add(String colName, Table table) throws Exception {
+        table.addColumn(colName);
     }
 
 
@@ -119,21 +145,48 @@ public class Parser {
         }
     }
 
-    private void select() throws Exception {
+    private String select() throws Exception {
         moveToNextToken();
+        System.out.println(getCurrentToken());
         if (!isWildAttributeList(count)){
             throw new Exception ("Expected * or an attribute list, receieved " + getCurrentToken());
         }
         moveToNextToken();
-        if (getCurrentToken() != "FROM"){
+        if (!getCurrentToken().equalsIgnoreCase("FROM")){
             throw new Exception("Expected FROM after wildattriblist in SELECT, received " + getCurrentToken());
         }
         moveToNextToken();
-        if (!isPlainText(getCurrentToken())){
+        String tableName = getCurrentToken();
+        if (!isPlainText(tableName)){
             throw new Exception("Expected a plain-text table in SELECT, received " + getCurrentToken());
         }
-        moveToNextToken();
+        Table activeTable = databaseList.getActiveDB().getTable(tableName);
+        if (activeTable == null){
+            throw new Exception("Table " + tableName + " was not found in active database");
+        }
+        return activeTable.stringifyTable();
+    }
 
+    private void update() throws Exception {
+        moveToNextToken();
+        if (!isPlainText(getCurrentToken())){
+            throw new Exception("Plain text table not received in update, received " + getCurrentToken());
+        }
+        moveToNextToken();
+        if (getCurrentToken() != "SET"){
+            throw new Exception("SET not found after table in update, received " + getCurrentToken());
+        }
+        moveToNextToken();
+        if (!isNameValueList(count)) {
+            throw new Exception("Name value list not found after SET in update, received " + getCurrentToken());
+        }
+        moveToNextToken();
+        if (getCurrentToken() != "WHERE"){
+            throw new Exception("WHERE not found after namevaluelist in update, received " + getCurrentToken());
+        }
+        if (!isCondition(getCurrentToken())) {
+            throw new Exception("Condition not found after WHERE in update, received " + getCurrentToken());
+        }
     }
 
     private void join() throws Exception {
@@ -205,9 +258,22 @@ public class Parser {
         count++;
     }
 
-    private boolean isValue(String statement) {
-        return true;
+    private boolean isValue(Integer currentPosition) {
+        String currentToken = query.get(currentPosition);
+        if (currentToken.equalsIgnoreCase("NULL")) {
+            return true;
+        } else if (isBooleanLiteral(currentToken)) {
+            return true;
+        } else if (isIntegerLiteral(currentPosition)) {
+            return true;
+        } else if (isFloatLiteral(currentPosition)) {
+            return true;
+        } else if (currentToken.equals("'")) {
+            return isStringLiteral(currentPosition + 1);
+        }
+        return false;
     }
+
 
     private boolean isDigitSequence(String token) {
         return isNumber(token);
@@ -221,11 +287,69 @@ public class Parser {
         }
     }
 
+    private boolean isStringLiteral(Integer currentPosition) {
+        if (query.get(currentPosition) == "\"") {
+            // check for empty string
+            if (query.get(currentPosition + 1) == "\"") {
+                return true;
+            }
+            // check for non-empty string
+            Integer nextPosition = currentPosition + 1;
+            while (nextPosition < query.size()) {
+                // check for escaped quotes
+                if (query.get(nextPosition) == "\\") {
+                    nextPosition += 2;
+                }
+                // check for end of string
+                else if (query.get(nextPosition) == "\"") {
+                    return true;
+                }
+                // check for valid characters within string
+                else if (!isCharLiteral(query.get(nextPosition))) {
+                    return false;
+                }
+                // move to next character
+                else {
+                    nextPosition += 1;
+                }
+            }
+        }
+        return false;
+    }
+
+
+
+
     private boolean isSymbol(String statement) {
         for (String symbol : symbols) {
             if (statement.contains(symbol)) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    private boolean isIntegerLiteral(Integer currentPosition){
+        if (isDigitSequence(query.get(currentPosition))){
+            return true;
+        }
+        else if (query.get(currentPosition) == "-" || query.get(currentPosition) == "+" && isDigitSequence(query.get(currentPosition+1))){
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isFloatLiteral(Integer currentPosition) {
+        if (isDigitSequence(query.get(currentPosition))) {
+            if (query.get(currentPosition+1) == ".") {
+                return isDigitSequence(query.get(currentPosition+2));
+            }
+            return false;
+        } else if (query.get(currentPosition) == "-" || query.get(currentPosition) == "+") {
+            if (query.get(currentPosition+1) == "." && isDigitSequence(query.get(currentPosition+2))) {
+                return true;
+            }
+            return false;
         }
         return false;
     }
@@ -240,13 +364,23 @@ public class Parser {
     }
 
     private boolean isValueList(Integer currentPosition) {
-        if (!isValue(query.get(currentPosition))) {
+        if (!isValue(currentPosition)) {
             return false;
         } else if (query.get(currentPosition + 1) == "," && isValueList(currentPosition + 2)) {
             return true;
         }
         return false;
     }
+
+    private boolean isNameValueList(Integer currentPosition) {
+        if (!isNameValuePair(currentPosition)) {
+            return false;
+        } else if (query.get(currentPosition + 1) == "," && isNameValueList(currentPosition + 2)) {
+            return true;
+        }
+        return false;
+    }
+
 
     public boolean isNameValuePair(Integer currentPosition) {
         if (!isAttributeName(query.get(currentPosition))) {
@@ -255,7 +389,7 @@ public class Parser {
         if (query.get(currentPosition + 1) != "=") {
             return false;
         }
-        if (!isValue(query.get(currentPosition + 2))) {
+        if (!isValue(currentPosition)) {
             return false;
         }
         return true;
@@ -271,14 +405,14 @@ public class Parser {
     }
 
     private boolean isWildAttributeList(Integer currentPosition) {
-        if (query.get(currentPosition) == "*") {
+        if (query.get(currentPosition).equals("*")) {
             return true;
         }
         return isAttributeList(currentPosition);
     }
 
     private boolean isAttributeName(String attribute) {
-        String[] splitToken = attribute.split(".");
+        String[] splitToken = attribute.split("\\.");
         if (splitToken.length != 1 && splitToken.length != 2) {
             return false;
         }

@@ -66,20 +66,6 @@ public class DBServer {
         }
     }*/
 
-    /*public void printFile() {
-        System.out.println(table.getName());
-        for (Column col : table.getColumns()) {
-            System.out.print(col.getName() + "\t");
-        }
-        System.out.println();
-        for (Row row : table.getRows()) {
-            for (String value : row.getValues().values()) {
-                System.out.print(value + "\t");
-            }
-            System.out.println();
-        }
-    }*/
-
 
     /**
      * KEEP this signature (i.e. {@code edu.uob.DBServer.handleCommand(String)}) otherwise we won't be

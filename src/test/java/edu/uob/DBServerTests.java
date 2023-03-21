@@ -52,6 +52,27 @@ public class DBServerTests {
     }
 
     @Test
+    public void testAlterUpdateParse() {
+        sendCommandToServer("CREATE DATABASE " + "fred" + ";");
+        sendCommandToServer("USE " + "fred" + ";");
+        sendCommandToServer("CREATE TABLE " + "fred" + ";");
+        String response = sendCommandToServer("ALTER TABLE " + "fred" + " " + "DROP" + " " + "george" + ";");
+        System.out.println("ERROR MESSAGE IS " + response);
+        assertTrue(response.contains("[OK]"), "An OK tag was not returned after trying to drop a column");
+    }
+
+    @Test
+    public void testSelectparse() {
+        sendCommandToServer("CREATE DATABASE " + "fred" + ";");
+        sendCommandToServer("USE " + "fred" + ";");
+        sendCommandToServer("CREATE TABLE " + "fred" + ";");
+        String response = sendCommandToServer("SELECT " + "*" + " FROM " + "fred" + ";");
+        System.out.println("ERROR MESSAGE IS " + response);
+        assertTrue(response.contains("[OK]"), "An OK tag was not returned after trying to SELECT * a table");
+    }
+
+
+    @Test
     public void testJoin() { //This isn't getting tokenised for some reason - last token is not
         sendCommandToServer("CREATE DATABASE " + "fred" + ";");
         sendCommandToServer("USE " + "fred" + ";");
