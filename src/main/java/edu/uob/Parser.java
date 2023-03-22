@@ -37,7 +37,7 @@ public class Parser {
             alter();
         } else if (query.get(count).equalsIgnoreCase(("USE"))) {
             use();
-        } else if (query.get(count).equalsIgnoreCase(("INSERT")) && (query.get(count + 1).equalsIgnoreCase("INTO"))) {
+        } else if (query.get(count).equalsIgnoreCase(("INSERT"))) {
             insert();
         } else if (query.get(count).equalsIgnoreCase(("DROP"))) {
             drop();
