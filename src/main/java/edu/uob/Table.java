@@ -4,40 +4,50 @@ import java.util.ArrayList;
 
 //They never give ids - my table should always generate them
 
+
 public class Table {
     private String name;
     private ArrayList<Row> rows;
     private ArrayList<Column> cols;
+    private boolean hasIdColumn;
 
-    public Table(String name, ArrayList<String> colNames) {
+    public Table(String name, ArrayList<String> colNames, boolean hasIdColumn) {
         this.name = name;
         this.cols = new ArrayList<>();
-        // Add "id" column to the beginning of the column list
-        this.cols.add(new Column("id"));
+        this.hasIdColumn = hasIdColumn;
+
+        if (!hasIdColumn) {
+            // Add "id" column to the beginning of the column list
+            this.cols.add(new Column("id"));
+        }
+
         for (String colName : colNames) {
             this.cols.add(new Column(colName));
         }
+
         this.rows = new ArrayList<>();
     }
 
     public void insertRow(String rowData) {
         String[] rowArray = rowData.split("\t");
-        //Always one more col because of id
-        if (rowArray.length + 1 != this.cols.size()) {
-            System.out.println(rowArray.length + 1);
-            System.out.println(this.cols.size());
+
+        if (rowArray.length != this.cols.size() - (this.hasIdColumn ? 0 : 1)) {
             throw new IllegalArgumentException("Row count does not match the amount of cols in file.");
         }
-        // Add "id" value to the beginning of the row
+
         Row row = new Row(getColumnNames());
-        row.setValue("id", Integer.toString(getNextID()));
-        ArrayList<String> columnNames = getColumnNames();
-        System.out.println(columnNames);
-        //i starts at 1 to skip the id column
-        for (int i = 1; i < columnNames.size(); i++) {
-            System.out.println(i);
-            row.setValue(columnNames.get(i), rowArray[i - 1]);
+
+        if (!this.hasIdColumn) {
+            // Add "id" value to the beginning of the row
+            row.setValue("id", Integer.toString(getNextID()));
         }
+
+        ArrayList<String> columnNames = getColumnNames();
+
+        for (int i = this.hasIdColumn ? 0 : 1; i < columnNames.size(); i++) {
+            row.setValue(columnNames.get(i), rowArray[i - (this.hasIdColumn ? 0 : 1)]);
+        }
+
         this.rows.add(row);
     }
 

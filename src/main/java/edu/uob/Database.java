@@ -17,10 +17,18 @@ public class Database {
             throw new Exception("Table " + tableName + " already exists");
         }
         else {
-            Table table = new Table(tableName,colNames);
+            boolean hasIdColumn = false;
+
+            // Check whether input file has an "id" column
+            if (colNames.size() > 0 && colNames.get(0).equals("id")) {
+                hasIdColumn = true;
+            }
+
+            Table table = new Table(tableName, colNames, hasIdColumn);
             tableMap.put(tableName,table);
         }
     }
+
     public Table getTable(String key){
         return tableMap.get(key);
     }
