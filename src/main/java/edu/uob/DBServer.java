@@ -142,7 +142,7 @@ public class DBServer {
         try {
             outputDatabasesAndTables();
         } catch (Exception e) {
-            return e.getMessage();
+            return "[ERROR]" + e.getMessage();
         }
         return "[OK]" + response;
     }

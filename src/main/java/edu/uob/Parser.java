@@ -2,6 +2,7 @@ package edu.uob;
 
 import javax.xml.crypto.Data;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 //Read in id when getting from file, but when making table generate it
@@ -44,12 +45,11 @@ public class Parser {
 
         } else if (query.get(count).equalsIgnoreCase(("CREATE"))) {
             create();
-        }
-        else if (query.get(count).equalsIgnoreCase(("SELECT"))) {
-           return select();
-        }else if (query.get(count).equalsIgnoreCase(("JOIN"))) {
+        } else if (query.get(count).equalsIgnoreCase(("SELECT"))) {
+            return select();
+        } else if (query.get(count).equalsIgnoreCase(("JOIN"))) {
             join();
-        }else if (query.get(count).equalsIgnoreCase(("UPDATE"))){
+        } else if (query.get(count).equalsIgnoreCase(("UPDATE"))) {
             update();
         }
         return "Boom";
@@ -81,11 +81,12 @@ public class Parser {
         if (!getCurrentToken().equals("(")) {
             throw new Exception("Expected '(' in insert, received " + getCurrentToken());
         }
+        Integer closeBracketPosition = findNextToken(count, ")");
         moveToNextToken();
-        if (!isValueList(count)){
-            throw new Exception ("Expected valuelist after open bracket in insert, received " + getCurrentToken());
+        if (!isValueList(count, closeBracketPosition - 1)) {
+            throw new Exception("Expected valuelist after open bracket in insert, received " + getCurrentToken());
         }
-        moveToNextToken();
+        count = closeBracketPosition; //Move to close bracket
         if (!getCurrentToken().equals(")")) {
             throw new Exception("Expected ')' in insert, received " + getCurrentToken());
         }
@@ -123,7 +124,7 @@ public class Parser {
             throw new Exception("Given table name is not plain text, received " + tableName);
         }
         Table activeTable = databaseList.getActiveDB().getTable(tableName);
-        if (activeTable == null){
+        if (activeTable == null) {
             throw new Exception("Table " + tableName + " does not exist");
         }
         moveToNextToken();
@@ -137,7 +138,7 @@ public class Parser {
             throw new Exception(("Expected attribute name after space in ALTER, received " + getCurrentToken()));
         }
         if (command.equalsIgnoreCase("ADD")) {
-            add(columnName,activeTable);
+            add(columnName, activeTable);
         }
         if (command.equalsIgnoreCase("DROP")) {
             //dropColumn();
@@ -177,20 +178,20 @@ public class Parser {
     private String select() throws Exception {
         moveToNextToken();
         System.out.println(getCurrentToken());
-        if (!isWildAttributeList(count)){
-            throw new Exception ("Expected * or an attribute list, receieved " + getCurrentToken());
+        if (!isWildAttributeList(count)) {
+            throw new Exception("Expected * or an attribute list, receieved " + getCurrentToken());
         }
         moveToNextToken();
-        if (!getCurrentToken().equalsIgnoreCase("FROM")){
+        if (!getCurrentToken().equalsIgnoreCase("FROM")) {
             throw new Exception("Expected FROM after wildattriblist in SELECT, received " + getCurrentToken());
         }
         moveToNextToken();
         String tableName = getCurrentToken();
-        if (!isPlainText(tableName)){
+        if (!isPlainText(tableName)) {
             throw new Exception("Expected a plain-text table in SELECT, received " + getCurrentToken());
         }
         Table activeTable = databaseList.getActiveDB().getTable(tableName);
-        if (activeTable == null){
+        if (activeTable == null) {
             throw new Exception("Table " + tableName + " was not found in active database");
         }
         return activeTable.stringifyTable();
@@ -198,11 +199,11 @@ public class Parser {
 
     private void update() throws Exception {
         moveToNextToken();
-        if (!isPlainText(getCurrentToken())){
+        if (!isPlainText(getCurrentToken())) {
             throw new Exception("Plain text table not received in update, received " + getCurrentToken());
         }
         moveToNextToken();
-        if (!getCurrentToken().equalsIgnoreCase("SET")){
+        if (!getCurrentToken().equalsIgnoreCase("SET")) {
             throw new Exception("SET not found after table in update, received " + getCurrentToken());
         }
         moveToNextToken();
@@ -210,7 +211,7 @@ public class Parser {
             throw new Exception("Name value list not found after SET in update, received " + getCurrentToken());
         }
         moveToNextToken();
-        if (!getCurrentToken().equalsIgnoreCase("WHERE")){
+        if (!getCurrentToken().equalsIgnoreCase("WHERE")) {
             throw new Exception("WHERE not found after namevaluelist in update, received " + getCurrentToken());
         }
         if (!isCondition(getCurrentToken())) {
@@ -297,9 +298,12 @@ public class Parser {
             return true;
         } else if (isFloatLiteral(currentPosition)) {
             return true;
-        } else if (currentToken.equals("'")) {
-            return isStringLiteral(currentPosition + 1);
+        } else if (currentToken.startsWith("'") && currentToken.endsWith("'")) {
+            String strippedToken = currentToken.substring(1, currentToken.length() - 1);
+            System.out.println("STRIPPED TOKEN IS  " + strippedToken);
+            return isStringLiteral(strippedToken);
         }
+        System.out.println("TOKEN AT END OF ISVALUE IS " + currentToken);
         return false;
     }
 
@@ -316,37 +320,14 @@ public class Parser {
         }
     }
 
-    private boolean isStringLiteral(Integer currentPosition) {
-        if (query.get(currentPosition).equals("\"")) {
-            // check for empty string
-            if (query.get(currentPosition + 1).equals("\"")) {
-                return true;
-            }
-            // check for non-empty string
-            Integer nextPosition = currentPosition + 1;
-            while (nextPosition < query.size()) {
-                // check for escaped quotes
-                if (query.get(nextPosition).equals("\\")) {
-                    nextPosition += 2;
-                }
-                // check for end of string
-                else if (query.get(nextPosition).equals("\"")) {
-                    return true;
-                }
-                // check for valid characters within string
-                else if (!isCharLiteral(query.get(nextPosition))) {
-                    return false;
-                }
-                // move to next character
-                else {
-                    nextPosition += 1;
-                }
-            }
+    public boolean isStringLiteral(String string) {
+        String symbolString = "";
+        for (String symbol:this.symbols) {
+            symbolString = symbolString.concat("\\"+symbol);
         }
-        return false;
+
+        return string.matches("[A-Za-z0-9"+symbolString+"]*");
     }
-
-
 
 
     private boolean isSymbol(String statement) {
@@ -358,11 +339,10 @@ public class Parser {
         return false;
     }
 
-    private boolean isIntegerLiteral(Integer currentPosition){
-        if (isDigitSequence(query.get(currentPosition))){
+    private boolean isIntegerLiteral(Integer currentPosition) {
+        if (isDigitSequence(query.get(currentPosition))) {
             return true;
-        }
-        else if (query.get(currentPosition).equals("-") || query.get(currentPosition).equals("+") && isDigitSequence(query.get(currentPosition+1))){
+        } else if (query.get(currentPosition).equals("-") || query.get(currentPosition).equals("+") && isDigitSequence(query.get(currentPosition + 1))) {
             return true;
         }
         return false;
@@ -370,12 +350,12 @@ public class Parser {
 
     private boolean isFloatLiteral(Integer currentPosition) {
         if (isDigitSequence(query.get(currentPosition))) {
-            if (query.get(currentPosition+1).equals(".")) {
-                return isDigitSequence(query.get(currentPosition+2));
+            if (query.get(currentPosition + 1).equals(".")) {
+                return isDigitSequence(query.get(currentPosition + 2));
             }
             return false;
         } else if (query.get(currentPosition).equals("-") || query.get(currentPosition).equals("+")) {
-            if (query.get(currentPosition+1).equals(".") && isDigitSequence(query.get(currentPosition+2))) {
+            if (query.get(currentPosition + 1).equals(".") && isDigitSequence(query.get(currentPosition + 2))) {
                 return true;
             }
             return false;
@@ -392,10 +372,12 @@ public class Parser {
         }
     }
 
-    private boolean isValueList(Integer currentPosition) {
-        if (!isValue(currentPosition)) {
+    private boolean isValueList(Integer startPosition, Integer endPosition) {
+        if (!isValue(startPosition)) {
             return false;
-        } else if (query.get(currentPosition + 1).equals(",") && isValueList(currentPosition + 2)) {
+        } else if (startPosition.equals(endPosition)){
+          return true;
+        }else if (query.get(startPosition + 1).equals(",") && isValueList(startPosition + 2, endPosition)) {
             return true;
         }
         return false;
@@ -467,7 +449,7 @@ public class Parser {
     }
 
 
-    private boolean isCondition(String statement) {
+    private boolean isCondition(String statement) { //TODO Remove?
         // Split the statement into tokens
         String[] tokens = statement.split("\\s+");
 
@@ -507,6 +489,18 @@ public class Parser {
             }
         }
         return false;
+    }
+
+    private Integer findNextToken(Integer currentPosition, String token) throws Exception {
+        for (;currentPosition < query.size(); currentPosition++) {
+            String currentToken = query.get(currentPosition);
+            System.out.println(currentToken);
+            if (currentToken.equals(token)) {
+                return currentPosition;
+            }
+        }
+        System.out.println(Arrays.toString(query.toArray()));
+        throw new Exception("Token " + token + " not found in given query");
     }
 
 }

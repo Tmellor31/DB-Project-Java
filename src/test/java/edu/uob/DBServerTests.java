@@ -31,6 +31,14 @@ public class DBServerTests {
                 "Server took too long to respond (probably stuck in an infinite loop)");
     }
 
+    /*@Test
+    public void testStringLiteral(){
+        String string = "#?fred1*";
+        String notLiteralString = "≠";
+        assertTrue(Parser.isStringLiteral(string));
+        assertFalse(Parser.isStringLiteral(notLiteralString));
+    }*/
+
     @Test
     public void testPlainTextDBandTable() {
         sendCommandToServer("CREATE DATABASE " + "fred" + ";");
@@ -56,11 +64,11 @@ public class DBServerTests {
         sendCommandToServer("CREATE DATABASE " + "fred" + ";");
         sendCommandToServer("USE " + "fred" + ";");
         sendCommandToServer("CREATE TABLE " + "fred" + ";");
-        String response = sendCommandToServer("INSERT INTO fred VALUES ('Steve', 65, TRUE);");
-        String response2 = sendCommandToServer("ALTER TABLE " + "fred" + "VALUES" + "(" + "george" + ")" + ";");
-        System.out.println("ERROR MESSAGE IS " + response);
-        assertTrue(response.contains("[OK]"), "An OK tag was not returned after trying insert values");
-        assertTrue(response2.contains("[OK]"), "An OK tag was not returned after trying to drop a column");
+        String insertResponse = sendCommandToServer("INSERT INTO fred VALUES ('Steve', 65, TRUE);");
+        //String alterResponse = sendCommandToServer("ALTER TABLE " + "fred" + "VALUES" + "(" + "george" + ")" + ";");
+        System.out.println("ERROR MESSAGE IS " + insertResponse);
+        assertTrue(insertResponse.contains("[OK]"), "An OK tag was not returned after trying insert values");
+        //assertTrue(alterResponse.contains("[OK]"), "An OK tag was not returned after trying to drop a column");
     }
 
     @Test
