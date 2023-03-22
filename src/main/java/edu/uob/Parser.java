@@ -83,14 +83,13 @@ public class Parser {
         }
         Integer closeBracketPosition = findNextToken(count, ")");
         moveToNextToken();
-        if (!isValueList(count, closeBracketPosition - 1)) {
-            throw new Exception("Expected valuelist after open bracket in insert, received " + getCurrentToken());
-        }
+        ArrayList<String> valueList = getValueList(count, closeBracketPosition - 1);
+        System.out.println("VALUE LIST IS " + valueList);
         count = closeBracketPosition; //Move to close bracket
         if (!getCurrentToken().equals(")")) {
             throw new Exception("Expected ')' in insert, received " + getCurrentToken());
         }
-
+        //targetTable.insertRow();
 
     }
 
@@ -322,11 +321,11 @@ public class Parser {
 
     public boolean isStringLiteral(String string) {
         String symbolString = "";
-        for (String symbol:this.symbols) {
-            symbolString = symbolString.concat("\\"+symbol);
+        for (String symbol : this.symbols) {
+            symbolString = symbolString.concat("\\" + symbol);
         }
 
-        return string.matches("[A-Za-z0-9"+symbolString+"]*");
+        return string.matches("[A-Za-z0-9" + symbolString + "]*");
     }
 
 
@@ -372,15 +371,18 @@ public class Parser {
         }
     }
 
-    private boolean isValueList(Integer startPosition, Integer endPosition) {
-        if (!isValue(startPosition)) {
-            return false;
-        } else if (startPosition.equals(endPosition)){
-          return true;
-        }else if (query.get(startPosition + 1).equals(",") && isValueList(startPosition + 2, endPosition)) {
-            return true;
+    private ArrayList<String> getValueList(Integer startPosition, Integer endPosition) throws Exception {
+        ArrayList <String> valueList = new ArrayList<>();
+        for (int currentPosition = startPosition; currentPosition < endPosition; currentPosition+=2) {
+            if (!isValue(currentPosition)) {
+                throw new Exception("Start position was not a value, received " + query.get(startPosition));
+            } else if (!query.get(currentPosition + 1).equals(",")) {
+                throw new Exception("Not a comma, received " + query.get(currentPosition+1));
+            }
+             valueList.add(query.get(currentPosition));
         }
-        return false;
+        valueList.add(query.get(endPosition));
+        return valueList;
     }
 
     private boolean isNameValueList(Integer currentPosition) {
@@ -492,7 +494,7 @@ public class Parser {
     }
 
     private Integer findNextToken(Integer currentPosition, String token) throws Exception {
-        for (;currentPosition < query.size(); currentPosition++) {
+        for (; currentPosition < query.size(); currentPosition++) {
             String currentToken = query.get(currentPosition);
             System.out.println(currentToken);
             if (currentToken.equals(token)) {
