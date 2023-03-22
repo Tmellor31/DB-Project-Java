@@ -145,7 +145,7 @@ public class DBServer {
         } catch (Exception e) {
             return "[ERROR]" + e.getMessage();
         }
-        return "[OK]" + response;
+        return "[OK]\n" + response;
     }
 
     private void outputDatabasesAndTables() throws Exception {

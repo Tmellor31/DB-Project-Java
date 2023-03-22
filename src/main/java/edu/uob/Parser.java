@@ -166,12 +166,23 @@ public class Parser {
             if (!isPlainText(getCurrentToken())) {
                 throw new Exception("Table names must be plain text, received " + getCurrentToken());
             }
+            String tableName = getCurrentToken();
             if (databaseList.getActiveDB().getTable(getCurrentToken().toLowerCase()) != null) {
                 throw new Exception("TABLE " + getCurrentToken() + " already exists");
-            } else {
-                databaseList.getActiveDB().createNewTable(getCurrentToken(), new ArrayList<String>());
             }
+            moveToNextToken();
+            ArrayList<String> plainList = new ArrayList<>();
+            if (getCurrentToken().equals("(")) {
 
+                Integer closeBracketPosition = findNextToken(count, ")");
+                moveToNextToken();
+                plainList = getPlainTextList(count, closeBracketPosition - 1);
+                count = closeBracketPosition; //Move to close bracket
+                if (!getCurrentToken().equals(")")) {
+                    throw new Exception("Expected ')' in insert, received " + getCurrentToken());
+                }
+            }
+            databaseList.getActiveDB().createNewTable(tableName, plainList);
         }
     }
 
@@ -371,17 +382,33 @@ public class Parser {
     }
 
     private ArrayList<String> getValueList(Integer startPosition, Integer endPosition) throws Exception {
-        ArrayList <String> valueList = new ArrayList<>();
-        for (int currentPosition = startPosition; currentPosition < endPosition; currentPosition+=2) {
+        ArrayList<String> valueList = new ArrayList<>();
+        for (int currentPosition = startPosition; currentPosition < endPosition; currentPosition += 2) {
             String value = getValue(currentPosition);
-             if (!query.get(currentPosition + 1).equals(",")) {
-                throw new Exception("Not a comma, received " + query.get(currentPosition+1));
+            if (!query.get(currentPosition + 1).equals(",")) {
+                throw new Exception("Not a comma, received " + query.get(currentPosition + 1));
             }
-             valueList.add(value);
+            valueList.add(value);
         }
         valueList.add(getValue(endPosition));
         return valueList;
     }
+
+    private ArrayList<String> getPlainTextList(Integer startPosition, Integer endPosition) throws Exception {
+        ArrayList<String> valueList = new ArrayList<>();
+        for (int currentPosition = startPosition; currentPosition < endPosition; currentPosition += 2) {
+            if (!isPlainText(query.get(currentPosition))){
+                throw new Exception ("Provided list is not plain-text");
+            }
+            if (!query.get(currentPosition + 1).equals(",")) {
+                throw new Exception("Not a comma, received " + query.get(currentPosition + 1));
+            }
+            valueList.add(query.get(currentPosition));
+        }
+        valueList.add(query.get(endPosition));
+        return valueList;
+    }
+
 
     private boolean isNameValueList(Integer currentPosition) throws Exception {
         if (!isNameValuePair(currentPosition)) {
