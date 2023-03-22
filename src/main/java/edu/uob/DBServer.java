@@ -105,8 +105,8 @@ public class DBServer {
 
     public class TabWriter {
 
-        public static void writeTable(Table table) throws Exception {
-            String fileName = table.getName() + ".tab";
+        public static void writeTable(Table table, String tablepath) throws Exception {
+            String fileName = tablepath;
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName))) {
                 String header = String.join("\t", table.getColumnNames()) + "\n";
                 bw.write(header);
@@ -119,30 +119,6 @@ public class DBServer {
             }
         }
     }
-
-
-        /*public void readFile() throws IOException {
-        String datafile = "databases" + File.separator + "people.tab";
-        File fileToOpen = new File(datafile);
-
-        if (fileToOpen.exists()) {
-            FileReader reader = new FileReader(fileToOpen);
-            BufferedReader buffReader = new BufferedReader(reader);
-            String currentLine = buffReader.readLine();
-            ArrayList<String> colNames = new ArrayList<>(Arrays.asList(currentLine.split("\t")));
-            this.table = new Table("people", colNames);
-            currentLine = buffReader.readLine();
-            while (currentLine != null) {
-                table.insertRow(currentLine);
-                // read next line
-                currentLine = buffReader.readLine();
-            }
-            reader.close();
-        } else {
-            throw new FileNotFoundException("Couldn't find people.tab");
-        }
-    }*/
-
 
     /**
      * KEEP this signature (i.e. {@code edu.uob.DBServer.handleCommand(String)}) otherwise we won't be
@@ -160,11 +136,35 @@ public class DBServer {
         try {
             response = parser.readCommand();
         } catch (Exception exception) {
-            return "[ERROR]" + exception;
+            return "[ERROR]" + exception.getMessage();
         }
-
+        // Output databases and tables to storage folder
+        try {
+            outputDatabasesAndTables();
+        } catch (Exception e) {
+            return e.getMessage();
+        }
         return "[OK]" + response;
     }
+
+    private void outputDatabasesAndTables() throws Exception {
+        // Loop through each database in the DatabaseList
+        for (Database database : databaseList.databases.values()) {
+            String dbPath = storageFolderPath + File.separator + database.dbName;
+            File dbDir = new File(dbPath);
+            if (!dbDir.exists()) {
+                dbDir.mkdir();
+            }
+
+            // Loop through each table in the current database
+            for (Table table : database.getTables().values()) {
+                String tablePath = dbPath + File.separator + table.getName() + ".tab";
+                TabWriter.writeTable(table, tablePath);
+            }
+        }
+    }
+
+
 
 
     //  === Methods below handle networking aspects of the project - you will not need to change these ! ===

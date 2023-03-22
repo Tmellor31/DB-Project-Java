@@ -29,6 +29,10 @@ public class Database {
         }
     }
 
+    public LinkedHashMap<String, Table> getTables() {
+        return tableMap;
+    }
+
     public Table getTable(String key){
         return tableMap.get(key);
     }
