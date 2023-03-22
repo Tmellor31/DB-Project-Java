@@ -52,13 +52,15 @@ public class DBServerTests {
     }
 
     @Test
-    public void testAlterUpdateParse() {
+    public void testAlterUpdateInsertParse() {
         sendCommandToServer("CREATE DATABASE " + "fred" + ";");
         sendCommandToServer("USE " + "fred" + ";");
         sendCommandToServer("CREATE TABLE " + "fred" + ";");
-        String response = sendCommandToServer("ALTER TABLE " + "fred" + " " + "DROP" + " " + "george" + ";");
+        String response = sendCommandToServer("INSERT INTO fred VALUES ('Steve', 65, TRUE);");
+        String response2 = sendCommandToServer("ALTER TABLE " + "fred" + "VALUES" + "(" + "george" + ")" + ";");
         System.out.println("ERROR MESSAGE IS " + response);
-        assertTrue(response.contains("[OK]"), "An OK tag was not returned after trying to drop a column");
+        assertTrue(response.contains("[OK]"), "An OK tag was not returned after trying insert values");
+        assertTrue(response2.contains("[OK]"), "An OK tag was not returned after trying to drop a column");
     }
 
     @Test

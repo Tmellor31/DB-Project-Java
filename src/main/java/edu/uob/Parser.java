@@ -61,9 +61,38 @@ public class Parser {
     }
 
     private void insert() throws Exception {
-        count += 2; //Move 2 because of insert AND into
+        moveToNextToken();
+        if (!getCurrentToken().equalsIgnoreCase("INTO")) {
+            throw new Exception("Expected INTO after INSERT, received " + getCurrentToken());
+        }
+        moveToNextToken();
+        if (!isPlainText(getCurrentToken())) {
+            throw new Exception("Tables must be plain text, received " + getCurrentToken());
+        }
+        if (databaseList.getActiveDB().getTable(getCurrentToken().toLowerCase()) == null) {
+            throw new Exception("TABLE " + getCurrentToken() + " does not exist");
+        }
         Table targetTable = databaseList.getActiveDB().getTable(getCurrentToken());
+        moveToNextToken();
+        if (!getCurrentToken().equalsIgnoreCase("VALUES")) {
+            throw new Exception("Expected VALUES after Tablename in Insert, received " + getCurrentToken());
+        }
+        moveToNextToken();
+        if (!getCurrentToken().equals("(")) {
+            throw new Exception("Expected '(' in insert, received " + getCurrentToken());
+        }
+        moveToNextToken();
+        if (!isValueList(count)){
+            throw new Exception ("Expected valuelist after open bracket in insert, received " + getCurrentToken());
+        }
+        moveToNextToken();
+        if (!getCurrentToken().equals(")")) {
+            throw new Exception("Expected ')' in insert, received " + getCurrentToken());
+        }
+
+
     }
+
 
     private void drop() throws Exception {
         moveToNextToken();
