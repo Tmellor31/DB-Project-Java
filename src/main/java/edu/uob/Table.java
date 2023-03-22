@@ -28,24 +28,26 @@ public class Table {
         this.rows = new ArrayList<>();
     }
 
-    public void insertRow(String rowData) {
-        String[] rowArray = rowData.split("\t");
+    public void insertNewRow (ArrayList<String> row){
+         String nextID = Integer.toString(getNextID());
+         row.add(0,nextID);
+        String[] rowArray = row.toArray(new String[row.size()]);
+         insertRow(rowArray);
+    }
 
-        if (rowArray.length != this.cols.size() - (this.hasIdColumn ? 0 : 1)) {
+    public void insertRow(String[] rowArray) {
+
+        if (rowArray.length != this.cols.size()) {
             throw new IllegalArgumentException("Row count does not match the amount of cols in file.");
         }
 
         Row row = new Row(getColumnNames());
 
-        if (!this.hasIdColumn) {
-            // Add "id" value to the beginning of the row
-            row.setValue("id", Integer.toString(getNextID()));
-        }
 
         ArrayList<String> columnNames = getColumnNames();
 
-        for (int i = this.hasIdColumn ? 0 : 1; i < columnNames.size(); i++) {
-            row.setValue(columnNames.get(i), rowArray[i - (this.hasIdColumn ? 0 : 1)]);
+        for (int i = 0; i < columnNames.size(); i++) {
+            row.setValue(columnNames.get(i), rowArray[i]);
         }
 
         this.rows.add(row);

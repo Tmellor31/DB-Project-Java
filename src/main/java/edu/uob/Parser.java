@@ -89,7 +89,8 @@ public class Parser {
         if (!getCurrentToken().equals(")")) {
             throw new Exception("Expected ')' in insert, received " + getCurrentToken());
         }
-        //targetTable.insertRow();
+        targetTable.insertNewRow(valueList);
+
 
     }
 
@@ -287,23 +288,21 @@ public class Parser {
         count++;
     }
 
-    private boolean isValue(Integer currentPosition) {
+    private String getValue(Integer currentPosition) throws Exception {
         String currentToken = query.get(currentPosition);
         if (currentToken.equalsIgnoreCase("NULL")) {
-            return true;
+            return currentToken;
         } else if (isBooleanLiteral(currentToken)) {
-            return true;
+            return currentToken;
         } else if (isIntegerLiteral(currentPosition)) {
-            return true;
+            return currentToken;
         } else if (isFloatLiteral(currentPosition)) {
-            return true;
+            return currentToken;
         } else if (currentToken.startsWith("'") && currentToken.endsWith("'")) {
             String strippedToken = currentToken.substring(1, currentToken.length() - 1);
-            System.out.println("STRIPPED TOKEN IS  " + strippedToken);
-            return isStringLiteral(strippedToken);
+            return strippedToken;
         }
-        System.out.println("TOKEN AT END OF ISVALUE IS " + currentToken);
-        return false;
+        throw new Exception("Failed to parse value " + currentToken);
     }
 
 
@@ -374,18 +373,17 @@ public class Parser {
     private ArrayList<String> getValueList(Integer startPosition, Integer endPosition) throws Exception {
         ArrayList <String> valueList = new ArrayList<>();
         for (int currentPosition = startPosition; currentPosition < endPosition; currentPosition+=2) {
-            if (!isValue(currentPosition)) {
-                throw new Exception("Start position was not a value, received " + query.get(startPosition));
-            } else if (!query.get(currentPosition + 1).equals(",")) {
+            String value = getValue(currentPosition);
+             if (!query.get(currentPosition + 1).equals(",")) {
                 throw new Exception("Not a comma, received " + query.get(currentPosition+1));
             }
-             valueList.add(query.get(currentPosition));
+             valueList.add(value);
         }
-        valueList.add(query.get(endPosition));
+        valueList.add(getValue(endPosition));
         return valueList;
     }
 
-    private boolean isNameValueList(Integer currentPosition) {
+    private boolean isNameValueList(Integer currentPosition) throws Exception {
         if (!isNameValuePair(currentPosition)) {
             return false;
         } else if (query.get(currentPosition + 1).equals(",") && isNameValueList(currentPosition + 2)) {
@@ -395,16 +393,14 @@ public class Parser {
     }
 
 
-    public boolean isNameValuePair(Integer currentPosition) {
+    public boolean isNameValuePair(Integer currentPosition) throws Exception {
         if (!isAttributeName(query.get(currentPosition))) {
             return false;
         }
         if (!query.get(currentPosition + 1).equals("=")) {
             return false;
         }
-        if (!isValue(currentPosition)) {
-            return false;
-        }
+        String value = getValue(currentPosition);
         return true;
     }
 

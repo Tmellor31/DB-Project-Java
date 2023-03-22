@@ -91,7 +91,8 @@ public class DBServer {
                 try {
                     databaseList.getActiveDB().createTable(tableName, colNames);
                     for (String row : data) {
-                        databaseList.getActiveDB().getTable(tableName).insertRow(row);
+                        String[] rowArray = row.split("\t");
+                        databaseList.getActiveDB().getTable(tableName).insertRow(rowArray);
                     }
                 } catch (Exception e) {
                     throw new Exception("Failed to create table " + tableName + " in database " + dbName + ": " + e.getMessage());
