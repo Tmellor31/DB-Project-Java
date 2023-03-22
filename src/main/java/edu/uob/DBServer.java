@@ -21,7 +21,6 @@ public class DBServer {
     DatabaseList databaseList;
 
 
-
     public static void main(String args[]) throws IOException {
         DBServer server = new DBServer();
 
@@ -34,17 +33,95 @@ public class DBServer {
      */
     public DBServer() {
         storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
-        this.databaseList = new DatabaseList();
         try {
-            // Create the database storage folder if it doesn't already exist !
             Files.createDirectories(Paths.get(storageFolderPath));
-            //readFile();
         } catch (IOException ioe) {
             System.out.println("Can't seem to create database storage folder " + storageFolderPath);
         }
+
+        try {
+            this.databaseList = folderReader(storageFolderPath);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
     }
 
-    /*public void readFile() throws IOException {
+    private DatabaseList folderReader(String directoryPath) throws Exception {
+        File directory = new File(directoryPath);
+        if (!directory.isDirectory()) {
+            throw new Exception((directoryPath + " is not a directory"));
+        }
+
+        DatabaseList databaseList = new DatabaseList();
+
+        // Create a database for each directory found in the "databases" folder
+        File[] directories = directory.listFiles(File::isDirectory);
+        for (File dbDirectory : directories) {
+            String dbName = dbDirectory.getName();
+            databaseList.createDatabase(dbName);
+            databaseList.setActiveDB(dbName);
+
+            // Create a table for each .tab file found in the database directory
+            File[] files = dbDirectory.listFiles((dir, name) -> name.toLowerCase().endsWith(".tab"));
+            for (File file : files) {
+                String tableName = file.getName().replace(".tab", "");
+                String filePath = file.getAbsolutePath();
+
+                ArrayList<String> colNames = new ArrayList<>();
+                ArrayList<String> data = new ArrayList<>();
+
+                try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+                    String line;
+                    int lineCount = 0;
+                    while ((line = br.readLine()) != null) {
+                        if (lineCount == 0) {
+                            String[] cols = line.split("\t");
+                            for (String col : cols) {
+                                colNames.add(col);
+                            }
+                        } else {
+                            data.add(line);
+                        }
+                        lineCount++;
+                    }
+                } catch (IOException e) {
+                    throw new Exception("Failed to read file " + file.getName());
+                }
+
+                try {
+                    databaseList.getActiveDB().createTable(tableName, colNames);
+                    for (String row : data) {
+                        databaseList.getActiveDB().getTable(tableName).insertRow(row);
+                    }
+                } catch (Exception e) {
+                    throw new Exception("Failed to create table " + tableName + " in database " + dbName + ": " + e.getMessage());
+                }
+            }
+        }
+        return databaseList;
+    }
+
+
+
+    public class TabWriter {
+
+        public static void writeTable(Table table) throws Exception {
+            String fileName = table.getName() + ".tab";
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName))) {
+                String header = String.join("\t", table.getColumnNames()) + "\n";
+                bw.write(header);
+                for (Row row : table.getRows()) {
+                    String rowString = String.join("\t", row.getValues().values()) + "\n";
+                    bw.write(rowString);
+                }
+            } catch (IOException e) {
+                throw new Exception("Failed to write file " + fileName);
+            }
+        }
+    }
+
+
+        /*public void readFile() throws IOException {
         String datafile = "databases" + File.separator + "people.tab";
         File fileToOpen = new File(datafile);
 
@@ -78,12 +155,12 @@ public class DBServer {
         tokeniser.query = command;
         tokeniser.setup();
         ArrayList<String> tokens = tokeniser.tokens;
-        Parser parser = new Parser(tokens, databaseList);
+        Parser parser = new Parser(tokens, this.databaseList);
         String response;
-       try {
-           response = parser.readCommand();
-       }catch (Exception exception){
-           return "[ERROR]" + exception;
+        try {
+            response = parser.readCommand();
+        } catch (Exception exception) {
+            return "[ERROR]" + exception;
         }
 
         return "[OK]" + response;
