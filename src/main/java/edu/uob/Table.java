@@ -9,17 +9,10 @@ public class Table {
     private String name;
     private ArrayList<Row> rows;
     private ArrayList<Column> cols;
-    private boolean hasIdColumn;
 
-    public Table(String name, ArrayList<String> colNames, boolean hasIdColumn) {
+    public Table(String name, ArrayList<String> colNames) {
         this.name = name;
         this.cols = new ArrayList<>();
-        this.hasIdColumn = hasIdColumn;
-
-        if (!hasIdColumn) {
-            // Add "id" column to the beginning of the column list
-            this.cols.add(new Column("id"));
-        }
 
         for (String colName : colNames) {
             this.cols.add(new Column(colName));
@@ -28,11 +21,11 @@ public class Table {
         this.rows = new ArrayList<>();
     }
 
-    public void insertNewRow (ArrayList<String> row){
-         String nextID = Integer.toString(getNextID());
-         row.add(0,nextID);
+    public void insertNewRow(ArrayList<String> row) {
+        String nextID = Integer.toString(getNextID());
+        row.add(0, nextID);
         String[] rowArray = row.toArray(new String[row.size()]);
-         insertRow(rowArray);
+        insertRow(rowArray);
     }
 
     public void insertRow(String[] rowArray) {

@@ -169,7 +169,7 @@ public class Parser {
             if (databaseList.getActiveDB().getTable(getCurrentToken().toLowerCase()) != null) {
                 throw new Exception("TABLE " + getCurrentToken() + " already exists");
             } else {
-                databaseList.getActiveDB().createTable(getCurrentToken(), new ArrayList<String>());
+                databaseList.getActiveDB().createNewTable(getCurrentToken(), new ArrayList<String>());
             }
 
         }

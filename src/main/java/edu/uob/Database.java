@@ -12,19 +12,17 @@ public class Database {
       tableMap = new LinkedHashMap<>();
     }
 
+    public void createNewTable(String tableName, ArrayList<String> colNames) throws Exception {
+        colNames.add(0,"id");
+        createTable(tableName, colNames);
+    }
+
     public void createTable(String tableName, ArrayList<String> colNames) throws Exception {
         if (tableMap.containsKey(tableName)) {
             throw new Exception("Table " + tableName + " already exists");
         }
         else {
-            boolean hasIdColumn = false;
-
-            // Check whether input file has an "id" column
-            if (colNames.size() > 0 && colNames.get(0).equals("id")) {
-                hasIdColumn = true;
-            }
-
-            Table table = new Table(tableName, colNames, hasIdColumn);
+            Table table = new Table(tableName, colNames);
             tableMap.put(tableName,table);
         }
     }
