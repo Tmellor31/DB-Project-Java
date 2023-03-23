@@ -135,7 +135,7 @@ public class DBServerTests {
     }
 
     @Test
-    public void testSelectparse() {
+    public void testSelectParse() {
         sendCommandToServer("CREATE DATABASE " + "fred" + ";");
         sendCommandToServer("USE " + "fred" + ";");
         sendCommandToServer("CREATE TABLE " + "fred" + ";");
@@ -160,7 +160,7 @@ public class DBServerTests {
     }
 
     @Test
-    public void testDatabaseandTablePersistsAfterRestart() {
+    public void testDatabaseAndTablePersistsAfterRestart() {
         String randomName = generateRandomName();
         sendCommandToServer("CREATE DATABASE " + randomName + ";");
         sendCommandToServer("USE " + randomName + ";");
