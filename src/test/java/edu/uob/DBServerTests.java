@@ -66,6 +66,32 @@ public class DBServerTests {
     }
 
     @Test
+    public void testDupes() {
+        sendCommandToServer("CREATE DATABASE " + "fred" + ";");
+        sendCommandToServer("USE " + "fred" + ";");
+        sendCommandToServer("CREATE TABLE " + "fred" + ";");
+        String responseToDupeDatabase = sendCommandToServer("CREATE DATABASE " + "fred" + ";");
+        String responseToDupeTable = sendCommandToServer("CREATE TABLE " + "fred" + ";");
+        assertTrue(responseToDupeDatabase.contains("[ERROR]"), "An ERROR tag was not returned after trying to create a dupe db");
+        assertTrue(responseToDupeTable.contains("[ERROR]"), "An ERROR tag was not returned after trying to create a dupe table");
+    }
+
+    @Test
+    public void testValueList(){
+        String randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        String incorrectPlainTextList = sendCommandToServer("CREATE TABLE marks (n--ame, m!rk, p??s);");
+        String correctPlainTextList = sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        String incorrectValueList = sendCommandToServer("INSERT INTO marks VALUES (St1ve, 68%, YES);");
+        String correctValueList = sendCommandToServer("INSERT INTO marks VALUES ('Steve', 68, TRUE);");
+        assertTrue(incorrectPlainTextList.contains("[ERROR]"), "An Error tag was not returned after entering bad values");
+        assertTrue(correctPlainTextList.contains("[OK]"), "An OK tag was not returned after entering a correct plain list");
+        assertTrue(incorrectValueList.contains("[ERROR]"), "AN error was not returned after entering an incorrect value list");
+        assertTrue(correctValueList.contains("[OK]"), "AN OK was not returned after entering an correct value list");
+    }
+
+    @Test
     public void testAlterCreateInsertParse() {
         sendCommandToServer("CREATE DATABASE " + "fred" + ";");
         sendCommandToServer("USE " + "fred" + ";");
@@ -75,6 +101,22 @@ public class DBServerTests {
         sendCommandToServer("ALTER TABLE fred ADD name");
         sendCommandToServer("ALTER TABLE fred ADD mark");
         String response = sendCommandToServer("ALTER TABLE fred ADD passed;");
+        assertTrue(response.contains("[OK]"), "An OK tag was not returned after trying to insert values via alter");
+    }
+
+    @Test
+    public void testAlterInsertErrors() {
+        sendCommandToServer("CREATE DATABASE " + "fred" + ";");
+        sendCommandToServer("USE " + "fred" + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        sendCommandToServer("CREATE TABLE " + "fred" + ";");
+        sendCommandToServer("ALTER TABLE fred ADD name");
+        sendCommandToServer("ALTER TABLE fred ADD mark");
+        String correctInsert = sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
+        String incorrectInsert = sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65a, WRONG);");
+        String response = sendCommandToServer("ALTER TABLE fred ADD passed;");
+        assertTrue(correctInsert.contains("[OK]"), "An OK tag was not returned after trying to insert values");
+        assertTrue(incorrectInsert.contains("[ERROR]"), "An ERROR tag was not returned after trying to insert incorrect values via alter");
         assertTrue(response.contains("[OK]"), "An OK tag was not returned after trying to insert values via alter");
     }
 
@@ -109,9 +151,12 @@ public class DBServerTests {
         sendCommandToServer("CREATE TABLE " + "fred" + ";");
         sendCommandToServer("CREATE TABLE " + "george" + ";");
         String response = sendCommandToServer("CREATE TABLE " + "fred" + ";");
-        String response2 = sendCommandToServer("JOIN " + "fred " + " AND " + "george " + " ON " + "marks " + " AND " + "tests " + ";");
+        String correctJoinQuery = sendCommandToServer("JOIN " + "fred " + " AND " + "george " + " ON " + "marks " + " AND " + "tests " + ";");
+        String incorrectJoinQuery = sendCommandToServer("JOIN " + "fred " + " AND " + "sam! " + " ON " + "marks " + " OR " + "tests " + ";");
+
         assertTrue(response.contains("[ERROR]"), "An ERROR tag was not returned after trying to CREATE a duplicate table");
-        assertTrue(response2.contains("[OK]"), "An OK tag was not returned after joining two tables and two attribute names");
+        assertTrue(correctJoinQuery.contains("[OK]"), "An OK tag was not returned after joining two tables and two attribute names");
+        assertTrue(incorrectJoinQuery.contains("[ERROR]"), "An ERROR tag was not returned after inputting an invalid join statement");
     }
 
     @Test
