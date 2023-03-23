@@ -23,6 +23,12 @@ public class DBServerTests {
         server = new DBServer();
     }
 
+    private String generateRandomName()
+    {
+        String randomName = "";
+        for(int i=0; i<10 ;i++) randomName += (char)( 97 + (Math.random() * 25.0));
+        return randomName;
+    }
     private String sendCommandToServer(String command) {
         // Try to send a command to the server - this call will timeout if it takes too long (in case the server enters an infinite loop)
         return assertTimeoutPreemptively(Duration.ofMillis(1000), () -> {
@@ -73,6 +79,20 @@ public class DBServerTests {
     }
 
     @Test
+    public void testAlterADDAndDropFunctionality() { //Drop only parses currently
+        String randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE test;");
+        sendCommandToServer("ALTER TABLE test ADD marks;");
+        sendCommandToServer("ALTER TABLE test ADD date;");
+        sendCommandToServer("ALTER TABLE test DROP date;");
+        String response = sendCommandToServer("SELECT * FROM test;");
+        System.out.println("RESPONSE WAS " + response);
+        assertTrue(response.contains("marks"), "An OK tag was not returned after trying to insert values via alter");
+    }
+
+    @Test
     public void testSelectparse() {
         sendCommandToServer("CREATE DATABASE " + "fred" + ";");
         sendCommandToServer("USE " + "fred" + ";");
@@ -81,18 +101,6 @@ public class DBServerTests {
         System.out.println("ERROR MESSAGE IS " + response);
         assertTrue(response.contains("[OK]"), "An OK tag was not returned after trying to SELECT * a table");
     }
-
-    @Test
-    public void testparse() {
-        sendCommandToServer("CREATE DATABASE " + "fred" + ";");
-        sendCommandToServer("USE " + "fred" + ";");
-        sendCommandToServer("CREATE TABLE " + "fred" + ";");
-        String response = sendCommandToServer("SELECT " + "*" + " FROM " + "fred" + ";");
-        System.out.println("ERROR MESSAGE IS " + response);
-        assertTrue(response.contains("[OK]"), "An OK tag was not returned after trying to SELECT * a table");
-    }
-
-
 
     @Test
     public void testJoinParse() {
@@ -104,5 +112,19 @@ public class DBServerTests {
         String response2 = sendCommandToServer("JOIN " + "fred " + " AND " + "george " + " ON " + "marks " + " AND " + "tests " + ";");
         assertTrue(response.contains("[ERROR]"), "An ERROR tag was not returned after trying to CREATE a duplicate table");
         assertTrue(response2.contains("[OK]"), "An OK tag was not returned after joining two tables and two attribute names");
+    }
+
+    @Test
+    public void testDatabaseandTablePersistsAfterRestart() {
+        String randomName = generateRandomName();
+        sendCommandToServer("CREATE DATABASE " + randomName + ";");
+        sendCommandToServer("USE " + randomName + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
+        // Create a new server object
+        server = new DBServer();
+        sendCommandToServer("USE " + randomName + ";");
+        String response = sendCommandToServer("SELECT * FROM marks;");
+        assertTrue(response.contains("Steve"), "Steve was added to a table and the server restarted - but Steve was not returned by SELECT *");
     }
 }

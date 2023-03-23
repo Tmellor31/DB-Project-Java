@@ -138,15 +138,19 @@ public class Parser {
             throw new Exception(("Expected attribute name after space in ALTER, received " + getCurrentToken()));
         }
         if (command.equalsIgnoreCase("ADD")) {
-            add(columnName, activeTable);
+            alterAdd(columnName, activeTable);
         }
         if (command.equalsIgnoreCase("DROP")) {
-            //dropColumn();
+            alterDrop(columnName, activeTable);
         }
     }
 
-    private void add(String colName, Table table) throws Exception {
+    private void alterAdd(String colName, Table table) throws Exception {
         table.addColumn(colName);
+    }
+
+    private void alterDrop(String colName, Table table) throws Exception {
+        /*table.dropColumn(colName);*/
     }
 
 

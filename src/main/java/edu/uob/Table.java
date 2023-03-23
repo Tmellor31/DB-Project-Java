@@ -98,6 +98,16 @@ public class Table {
         Column column = new Column(columnName);
         cols.add(column);
     }
+    /*public void dropColumn(String columnName) throws Exception{
+        if (!this.colInTable(columnName)){
+            throw new Exception("Column " + columnName + " not found in table");
+        }
+        for (int i = 0; i < this.getColumnNames().size(); i++){
+            if (this.getColumnNames()){
+
+            }
+        }
+    }*/
 }
 
 
