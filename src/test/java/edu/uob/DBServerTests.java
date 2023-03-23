@@ -60,15 +60,14 @@ public class DBServerTests {
     }
 
     @Test
-    public void testAlterUpdateInsertParse() {
+    public void testAlterCreateParse() {
         sendCommandToServer("CREATE DATABASE " + "fred" + ";");
         sendCommandToServer("USE " + "fred" + ";");
         sendCommandToServer("CREATE TABLE " + "fred" + ";");
-        String insertResponse = sendCommandToServer("INSERT INTO fred VALUES ('Steve', 65, TRUE);");
-        //String alterResponse = sendCommandToServer("ALTER TABLE " + "fred" + "VALUES" + "(" + "george" + ")" + ";");
-        System.out.println("ERROR MESSAGE IS " + insertResponse);
-        assertTrue(insertResponse.contains("[OK]"), "An OK tag was not returned after trying insert values");
-        //assertTrue(alterResponse.contains("[OK]"), "An OK tag was not returned after trying to drop a column");
+        sendCommandToServer("ALTER TABLE fred ADD name");
+        sendCommandToServer("ALTER TABLE fred ADD mark");
+        String response = sendCommandToServer("ALTER TABLE fred ADD passed;");
+        assertTrue(response.contains("[OK]"), "An OK tag was not returned after trying to insert values via alter");
     }
 
     @Test
