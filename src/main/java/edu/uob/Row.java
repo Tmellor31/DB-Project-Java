@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.NoSuchElementException;
 
 public class Row {
-    private LinkedHashMap<String, String> values; //He did say I don't need a linkedhashmap, could just use arraylist or treemap
+    private LinkedHashMap<String, String> values;
 
     public Row(ArrayList<String> columnNames) {
         values = new LinkedHashMap<>();
