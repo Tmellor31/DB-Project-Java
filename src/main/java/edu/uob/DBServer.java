@@ -14,6 +14,10 @@ import java.util.*;
 /**
  * This class implements the DB server.
  */
+
+/* Notes for Simon and Sion - ran out of time to implement quite a few of the features - tried to implement the most important ones
+*  such as SELECT * etc. I've left some things such as AttributeList in despite being unused so that you can see my attempt at implementation
+* File reading function should work all fine. */
 public class DBServer {
 
     private static final char END_OF_TRANSMISSION = 4;

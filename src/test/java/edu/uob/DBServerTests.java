@@ -37,7 +37,7 @@ public class DBServerTests {
                 "Server took too long to respond (probably stuck in an infinite loop)");
     }
 
-    /*@Test
+    /*@Test //Had to remove as method is private, but tests ran successfully
     public void testStringLiteral(){
         String string = "#?fred1*";
         String notLiteralString = "≠";
