@@ -60,9 +60,11 @@ public class DBServerTests {
     }
 
     @Test
-    public void testAlterCreateParse() {
+    public void testAlterCreateInsertParse() {
         sendCommandToServer("CREATE DATABASE " + "fred" + ";");
         sendCommandToServer("USE " + "fred" + ";");
+        sendCommandToServer("CREATE TABLE marks (name, mark, pass);");
+        sendCommandToServer("INSERT INTO marks VALUES ('Steve', 65, TRUE);");
         sendCommandToServer("CREATE TABLE " + "fred" + ";");
         sendCommandToServer("ALTER TABLE fred ADD name");
         sendCommandToServer("ALTER TABLE fred ADD mark");
@@ -80,16 +82,26 @@ public class DBServerTests {
         assertTrue(response.contains("[OK]"), "An OK tag was not returned after trying to SELECT * a table");
     }
 
+    @Test
+    public void testparse() {
+        sendCommandToServer("CREATE DATABASE " + "fred" + ";");
+        sendCommandToServer("USE " + "fred" + ";");
+        sendCommandToServer("CREATE TABLE " + "fred" + ";");
+        String response = sendCommandToServer("SELECT " + "*" + " FROM " + "fred" + ";");
+        System.out.println("ERROR MESSAGE IS " + response);
+        assertTrue(response.contains("[OK]"), "An OK tag was not returned after trying to SELECT * a table");
+    }
+
+
 
     @Test
-    public void testJoin() { //This isn't getting tokenised for some reason - last token is not
+    public void testJoinParse() {
         sendCommandToServer("CREATE DATABASE " + "fred" + ";");
         sendCommandToServer("USE " + "fred" + ";");
         sendCommandToServer("CREATE TABLE " + "fred" + ";");
         sendCommandToServer("CREATE TABLE " + "george" + ";");
-        String response = sendCommandToServer("CREATE TABLE " + "fred" + ";"); //This doesn't work when there's a space in front of AND
-        String response2 = sendCommandToServer("JOIN " + "fred " + " AND " + "george " + " ON " + "marks " + " AND " + "tests " + ";"); //This doesn't work when there's a space in front of AND
-        System.out.println("LOOK HERE WDAWNDWADWDAW" + response2);
+        String response = sendCommandToServer("CREATE TABLE " + "fred" + ";");
+        String response2 = sendCommandToServer("JOIN " + "fred " + " AND " + "george " + " ON " + "marks " + " AND " + "tests " + ";");
         assertTrue(response.contains("[ERROR]"), "An ERROR tag was not returned after trying to CREATE a duplicate table");
         assertTrue(response2.contains("[OK]"), "An OK tag was not returned after joining two tables and two attribute names");
     }
